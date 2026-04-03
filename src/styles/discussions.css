@@ -1,0 +1,99 @@
+.discussions-page{
+  padding:40px;
+  background:#020617;
+  color:white;
+  min-height:100vh;
+}
+
+/* HERO */
+
+.discussion-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:40px;
+  border-radius:14px;
+  background:linear-gradient(90deg,#0f2a44,#40124c);
+}
+
+.hero-text{
+  max-width:500px;
+}
+
+.hero-text h1{
+  font-size:28px;
+  margin-bottom:15px;
+}
+
+.hero-text p{
+  margin-bottom:20px;
+  color:#cbd5e1;
+}
+
+.hero-text button{
+  background:#3b82f6;
+  border:none;
+  padding:10px 20px;
+  border-radius:6px;
+  color:white;
+}
+
+/* MAIN */
+
+.discussion-content{
+  display:flex;
+  margin-top:40px;
+  gap:40px;
+}
+
+/* SIDEBAR */
+
+.genre-sidebar{
+  width:220px;
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+}
+
+.genre-sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+.genre-sidebar li{
+  margin:10px 0;
+  cursor:pointer;
+}
+
+/* DISCUSSION CARD */
+
+.discussion-list{
+  flex:1;
+}
+
+.discussion-card{
+  display:flex;
+  gap:20px;
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+  margin-top:20px;
+}
+
+.discussion-votes{
+  text-align:center;
+  font-weight:bold;
+}
+
+.discussion-body img{
+  width:100%;
+  margin-top:10px;
+  border-radius:6px;
+}
+
+.discussion-actions{
+  margin-top:10px;
+  display:flex;
+  gap:20px;
+  color:#9ca3af;
+}

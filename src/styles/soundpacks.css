@@ -1,0 +1,150 @@
+.soundpacks-page{
+  padding:40px;
+  background:#020617;
+  color:white;
+  min-height:100vh;
+}
+
+/* HERO */
+
+.soundpacks-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#0f2a44;
+  padding:40px;
+  border-radius:12px;
+}
+
+.hero-text{
+  max-width:500px;
+}
+
+.hero-text h1{
+  font-size:32px;
+  margin-bottom:20px;
+}
+
+.hero-text p{
+  color:#cbd5e1;
+  margin-bottom:20px;
+}
+
+.hero-text button{
+  background:#3b82f6;
+  border:none;
+  padding:10px 20px;
+  border-radius:6px;
+  color:white;
+}
+
+/* CONTROLS */
+
+.soundpacks-controls{
+  display:flex;
+  justify-content:space-between;
+  margin-top:40px;
+}
+
+.tabs button{
+  background:#1f2937;
+  border:none;
+  padding:8px 16px;
+  margin-right:10px;
+  border-radius:6px;
+  color:white;
+}
+
+.tabs .active{
+  background:#3b82f6;
+}
+
+.search{
+  background:#111827;
+  border:none;
+  padding:8px 16px;
+  border-radius:6px;
+  color:white;
+}
+
+/* GRID */
+
+.soundpacks-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:25px;
+  margin-top:30px;
+}
+
+/* CARD */
+
+.sound-card{
+  background:#111827;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.sound-image{
+  position:relative;
+}
+
+.sound-image img{
+  width:100%;
+}
+
+.play{
+  position:absolute;
+  left:15px;
+  bottom:15px;
+  background:#3b82f6;
+  border:none;
+  border-radius:50%;
+  width:40px;
+  height:40px;
+  color:white;
+}
+
+.sound-info{
+  padding:15px;
+}
+
+.tag{
+  background:#a855f7;
+  padding:3px 8px;
+  border-radius:6px;
+  font-size:12px;
+}
+
+.genres{
+  margin-top:10px;
+}
+
+.genres span{
+  background:#1f2937;
+  padding:4px 8px;
+  margin-right:6px;
+  border-radius:5px;
+  font-size:12px;
+}
+
+.card-actions{
+  margin-top:15px;
+  display:flex;
+  gap:10px;
+}
+
+.download{
+  background:#3b82f6;
+  border:none;
+  padding:6px 12px;
+  border-radius:6px;
+  color:white;
+}
+
+.add{
+  background:#1f2937;
+  border:none;
+  padding:6px 12px;
+  border-radius:6px;
+  color:white;
+}

@@ -1,0 +1,249 @@
+.track-page {
+  padding: 40px 60px 120px;
+  color: white;
+}
+
+.track-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 50px;
+}
+
+/* LEFT COLUMN */
+
+.track-main-card {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  background: #111827;
+  border-radius: 20px;
+  padding: 35px;
+  gap: 30px;
+}
+
+.track-text h1 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+
+.artist-name {
+  color: #9ca3af;
+  margin-bottom: 25px;
+}
+
+.controls button {
+  margin-right: 12px;
+  background: #1f2937;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.controls button:hover {
+  background: #374151;
+}
+
+.progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.progress-bar input {
+  flex: 1;
+}
+
+.cover {
+  width: 100%;
+  border-radius: 18px;
+}
+
+/* COMMENT INPUT */
+
+.comment-input {
+  margin-top: 30px;
+  background: #111827;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+.comment-input input {
+  width: 100%;
+  padding: 12px;
+  background: #1f2937;
+  border: none;
+  border-radius: 10px;
+  color: white;
+}
+
+.comment-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.cancel {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.send {
+  background: #6366f1;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+/* COMMENTS */
+
+.comment {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.comment img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+}
+
+.comment-header {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.comment-footer {
+  margin-top: 8px;
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+/* RIGHT COLUMN */
+
+.side-block {
+  margin-bottom: 35px;
+}
+
+.artist-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #111827;
+  padding: 15px;
+  border-radius: 15px;
+}
+
+.artist-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.artist-card button {
+  margin-top: 5px;
+  background: #6366f1;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.tags span {
+  display: inline-block;
+  border: 1px solid #374151;
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin: 5px 8px 0 0;
+  font-size: 14px;
+}
+
+/* MINI TRACK */
+
+.mini-track {
+  display: flex;
+  gap: 12px;
+  background: #111827;
+  padding: 10px;
+  border-radius: 12px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.mini-track:hover {
+  background: #1f2937;
+}
+
+.mini-track img {
+  width: 60px;
+  border-radius: 10px;
+}
+
+.mini-track span {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* LIKED USERS */
+
+.liked-users img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+/* BOTTOM PLAYER */
+
+.bottom-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #312e81;
+  padding: 15px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-left input {
+  width: 400px;
+}
+
+.player-track-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-track-info img {
+  width: 45px;
+  border-radius: 8px;
+}
+
+.player-track-info span {
+  font-size: 13px;
+  color: #c7d2fe;
+}

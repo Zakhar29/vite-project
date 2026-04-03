@@ -1,0 +1,83 @@
+.album-page{
+  padding:40px;
+  color:white;
+  background:#0f172a;
+  min-height:100vh;
+}
+
+.album-header{
+  display:flex;
+  gap:40px;
+  background:#132c4a;
+  padding:30px;
+  border-radius:12px;
+  width : 1184px;
+  margin: 0 auto;
+}
+
+.album-cover{
+  width:220px;
+  border-radius:10px;
+}
+
+.album-info h1{
+  font-size:32px;
+  margin-bottom:10px;
+}
+
+.album-artist{
+  color:#9ca3af;
+  margin-bottom:20px;
+}
+
+.album-desc{
+  max-width:500px;
+  margin-bottom:20px;
+}
+
+.album-meta{
+  color:#9ca3af;
+  margin-bottom:20px;
+}
+
+.album-buttons{
+  display:flex;
+  gap:15px;
+}
+
+.play-btn{
+  background:#3b82f6;
+  border:none;
+  padding:10px 20px;
+  border-radius:20px;
+  color:white;
+  cursor:pointer;
+}
+
+.shuffle-btn{
+  background:transparent;
+  border:1px solid #3b82f6;
+  padding:10px 20px;
+  border-radius:20px;
+  color:white;
+}
+
+.tracks{
+  margin-top:50px;
+  margin: 0 auto;
+  width: 1184px;
+  margin-top:50px;
+}
+
+.tracks-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:20px;
+}
+
+.tracks-table th,
+.tracks-table td{
+  padding:14px;
+  border-bottom:1px solid #1f2937;
+  text-align:left;
+}

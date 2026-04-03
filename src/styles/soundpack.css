@@ -1,0 +1,89 @@
+.soundpack-page{
+  padding:40px;
+  background:#020617;
+  color:white;
+}
+
+.soundpack-layout{
+  display:flex;
+  gap:40px;
+}
+
+.soundpack-main{
+  flex:1;
+}
+
+.soundpack-sidebar{
+  width:300px;
+}
+
+/* HEADER */
+
+.pack-header{
+  display:flex;
+  gap:30px;
+}
+
+.pack-cover{
+  width:350px;
+  border-radius:10px;
+}
+
+.pack-tags span{
+  background:#1f2937;
+  padding:6px 10px;
+  margin-right:6px;
+  border-radius:6px;
+}
+
+.download-btn{
+  margin-top:20px;
+  padding:10px 20px;
+  background:#3b82f6;
+  border:none;
+  border-radius:6px;
+}
+
+/* TRACK LIST */
+
+.pack-tracks{
+  margin-top:20px;
+}
+
+.pack-track{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr 1fr auto auto;
+  gap:10px;
+  padding:14px;
+  margin-bottom:10px;
+  background:#111827;
+  border-radius:8px;
+}
+
+/* SIDEBAR */
+
+.recommend-card{
+  display:flex;
+  gap:10px;
+  margin-top:15px;
+}
+
+.recommend-card img{
+  width:60px;
+  border-radius:6px;
+}
+
+/* REVIEWS */
+
+.pack-review{
+  background:#111827;
+  padding:15px;
+  border-radius:8px;
+  margin-top:15px;
+}
+
+.review-header{
+  display:flex;
+  gap:10px;
+  margin-bottom:10px;
+}

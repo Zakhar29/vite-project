@@ -1,0 +1,13 @@
+.foryou-section {
+  margin: 60px;
+  padding: 40px;
+  background-color: #111827;
+  border-radius: 18px;
+}
+
+.foryou-grid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}

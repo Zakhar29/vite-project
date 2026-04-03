@@ -1,0 +1,25 @@
+.hero {
+  display: flex;
+  gap: 40px;
+  padding: 40px 60px;
+}
+
+.hero__image {
+  width: 50%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.hero__content {
+  width: 50%;
+  background-color: #1E1B4B;
+  padding: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.hero__content h1 {
+  font-size: 28px;
+  line-height: 1.4;
+}

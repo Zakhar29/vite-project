@@ -1,0 +1,24 @@
+.new-section {
+  padding: 40px 60px;
+  background-color: #0f172a;
+  border-radius: 16px;
+  margin: 40px 60px;
+}
+
+.new-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.view-all {
+  font-size: 14px;
+  color: #6366f1;
+}
+
+.new-grid {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 25px;
+}

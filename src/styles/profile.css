@@ -1,0 +1,187 @@
+.profile-page{
+  padding:40px;
+  color:white;
+  background:#020617;
+}
+
+/* HEADER */
+
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  background:#111827;
+  padding:30px;
+  border-radius:10px;
+  margin-bottom:30px;
+}
+
+.profile-left{
+  display:flex;
+  gap:20px;
+}
+
+.profile-avatar{
+  width:80px;
+  border-radius:50%;
+}
+
+.profile-stats{
+  display:flex;
+  gap:30px;
+}
+
+.count{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.blue{
+  color:#3b82f6;
+}
+
+.purple{
+  color:#a855f7;
+}
+
+.follow-btn{
+  margin-top:10px;
+  padding:10px 20px;
+  background:#3b82f6;
+  border:none;
+  border-radius:6px;
+}
+
+/* PLAYLISTS */
+
+.playlist-row{
+  display:flex;
+  gap:20px;
+  margin-bottom:30px;
+}
+
+.playlist-card{
+  width:250px;
+}
+
+.playlist-card img{
+  width:100%;
+  border-radius:10px;
+}
+
+/* ALBUMS */
+
+.album-row{
+  display:flex;
+  gap:20px;
+  margin-bottom:30px;
+}
+
+.album-card{
+  width:250px;
+  background:#111827;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.album-card img{
+  width:100%;
+}
+
+.album-info{
+  padding:10px;
+}
+
+/* TRACKS */
+
+.profile-track{
+  display:flex;
+  justify-content:space-between;
+  background:#111827;
+  padding:20px;
+  border-radius:10px;
+  margin-bottom:15px;
+}
+
+.track-cover{
+  width:120px;
+  border-radius:10px;
+}
+
+.track-progress{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.progress-bar{
+  width:200px;
+  height:4px;
+  background:#374151;
+  border-radius:4px;
+}
+
+/* TABS */
+
+.profile-tabs{
+display:flex;
+gap:20px;
+margin:25px 0;
+border-bottom:1px solid #1f2937;
+padding-bottom:10px;
+}
+
+.profile-tabs span{
+cursor:pointer;
+color:#9ca3af;
+}
+
+.profile-tabs .active{
+color:#3b82f6;
+font-weight:600;
+}
+
+/* POSTS */
+
+.posts-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+}
+
+.add-post{
+width:40px;
+height:40px;
+border-radius:50%;
+border:1px solid #374151;
+background:transparent;
+color:white;
+font-size:22px;
+cursor:pointer;
+}
+
+.post-card{
+background:#111827;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+.post-top{
+display:flex;
+justify-content:space-between;
+}
+
+.post-actions{
+margin-top:10px;
+display:flex;
+gap:15px;
+font-size:20px;
+}
+
+.post-footer{
+margin-top:15px;
+display:flex;
+gap:20px;
+color:#9ca3af;
+}
