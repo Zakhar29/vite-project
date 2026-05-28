@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: microservices_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: microservices_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # Web Console
+    environment:
+      MINIO_ROOT_USER: 'minioadmin'
+      MINIO_ROOT_PASSWORD: 'minioadmin123'  # Минимум 8 символов
+    volumes:
+      - minio_data:/data
+    networks:
+      - microservices_network
+    command: server /data --console-address ":9001"
+
+
+
+  users_service:
+    build: ./users_service
+    container_name: users_service
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://admin:postgres@postgres:5432/melo_users
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - microservices_network
+    volumes:
+      - ./users_service:/app
+
+  media_service:
+    build: ./media_service
+    container_name: media_service
+    ports:
+      - "8001:8001"
+    environment:
+      MINIO_URL: http://minio:9000
+      MINIO_ROOT_USER: 'minioadmin'        #  запустить пользовательскую консоль
+      MINIO_ROOT_PASSWORD: 'minioadmin123'
+      CDN_DOMAIN: "localhost:9000"
+      MINIO_ADDRESS: ':9000'
+      MINIO_CONSOLE_ADDRESS: ':9001'
+    networks:
+      - microservices_network
+    volumes:
+      - ./media_service:/app
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - microservices_network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # 🔥 КРИТИЧНО: изолирует node_modules образа от хоста
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+
+networks:
+  microservices_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
