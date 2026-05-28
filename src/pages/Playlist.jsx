@@ -12,7 +12,7 @@ function Playlist() {
         />
 
         <div className="album-info">
-          <h1>Chill Evening</h1>
+          <h1>Chil Evening</h1>
 
           <p className="album-artist">
             Плейлист пользователя

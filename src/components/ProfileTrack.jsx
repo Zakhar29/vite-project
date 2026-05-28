@@ -1,32 +1,39 @@
 function ProfileTrack() {
   return (
-    <div className="profile-track">
+    <div className="profile-track neon-track">
 
-      <div className="track-info">
-
-        <h3>Neon Dreamscape Anthem</h3>
-        <span>Zakhar</span>
-
-        <div className="track-controls">
-
-          <button>▶</button>
-          <button>♡</button>
-          <button>↗</button>
-
+      {/* Левая часть: обложка + название */}
+      <div className="track-left">
+        <img
+          src="https://picsum.photos/id/1015/300/300"
+          alt="Neon Dreamscape Anthem"
+          className="track-cover"
+        />
+        <div className="track-info">
+          <h3 className="track-title">Neon Dreamscape Anthem</h3>
+          <span className="track-artist">Zakhar</span>
         </div>
-
-        <div className="track-progress">
-          <span>0:00</span>
-          <div className="progress-bar"></div>
-          <span>3:04</span>
-        </div>
-
       </div>
 
-      <img
-        src="https://picsum.photos/200"
-        className="track-cover"
-      />
+      {/* Прогресс-бар — теперь всегда виден для каждого трека */}
+      <div className="track-progress-container">
+        <div className="track-progress">
+          <span className="time">0:00</span>
+          <div className="progress-bar">
+            <div className="progress" style={{ width: "45%" }}></div>
+          </div>
+          <span className="time">3:04</span>
+        </div>
+      </div>
+
+      {/* Правая часть: кнопки */}
+      <div className="track-right">
+        <div className="track-controls">
+          <button className="control-btn play-btn">▶</button>
+          <button className="control-btn">♡</button>
+          <button className="control-btn">↗</button>
+        </div>
+      </div>
 
     </div>
   );

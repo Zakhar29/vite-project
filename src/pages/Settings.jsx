@@ -7,15 +7,7 @@ function Settings() {
 
         <h1 className="settings-title">← Настройки</h1>
 
-        <div className="header-right">
-          <button className="icon-btn">🔔</button>
-
-          <img
-            src="https://i.pravatar.cc/40"
-            alt="avatar"
-            className="avatar"
-          />
-        </div>
+        
 
       </div>
       <div className="settings-container">

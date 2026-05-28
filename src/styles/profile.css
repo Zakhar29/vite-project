@@ -1,7 +1,8 @@
 .profile-page{
   padding:40px;
   color:white;
-  background:#020617;
+  background:#000000FF;
+  padding-left: 400px;
 }
 
 /* HEADER */
@@ -13,6 +14,9 @@
   padding:30px;
   border-radius:10px;
   margin-bottom:30px;
+  width: 1024px; 
+  height: 364px;
+  
 }
 
 .profile-left{
@@ -21,13 +25,20 @@
 }
 
 .profile-avatar{
-  width:80px;
+  width:54px;
+  height: 54px;
   border-radius:50%;
+}
+
+.text_prof{
+  width: 384px;
 }
 
 .profile-stats{
   display:flex;
   gap:30px;
+  margin-left: -250px;
+  margin-top: 100px;
 }
 
 .count{
@@ -184,4 +195,295 @@ margin-top:15px;
 display:flex;
 gap:20px;
 color:#9ca3af;
+}
+
+/* ====================== NEON TRACK - ПРАВИЛЬНАЯ ПРИВЯЗКА ====================== */
+
+.profile-track.neon-track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1e2937;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  height: 82px;
+  gap: 24px;
+}
+
+.track-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 280px;
+}
+
+.track-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.track-info h3.track-title {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: white;
+}
+
+.track-artist {
+  font-size: 13.5px;
+  color: #94a3b8;
+}
+
+/* Центр */
+.track-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0; /* важно для сжатия */
+}
+
+.track-progress {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.track-time-only {
+  color: #64748b;
+  font-size: 14px;
+  padding-left: 10px;
+}
+
+.time {
+  font-size: 13.5px;
+  color: #94a3b8;
+  min-width: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #334155;
+  border-radius: 9999px;
+  position: relative;
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #22d3ee, #a855f7);
+  border-radius: 9999px;
+}
+
+/* Правая часть */
+.track-right .track-controls {
+  display: flex;
+  gap: 18px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.play-btn {
+  color: #22d3ee;
+  font-size: 22px;
+}
+
+/* ====================== PROGRESS BAR ДЛЯ КАЖДОГО ТРЕКА ====================== */
+
+.profile-track.neon-track {
+  display: flex;
+  align-items: center;
+  background: #1e2937;
+  padding: 14px 20px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  width: 800px; 
+  height: 204px; 
+  gap: 20px;
+}
+
+.track-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 260px;
+}
+
+.track-cover {
+  width: 205px; 
+  height: 205px; 
+  border-radius: 8px;
+  object-fit: cover;
+  
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.track-title {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: white;
+}
+
+.track-artist {
+  font-size: 13.5px;
+  color: #94a3b8;
+}
+
+/* Прогресс-бар */
+.track-progress-container {
+  flex: 1;
+  max-width: 460px;
+}
+
+.track-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.time {
+  font-size: 13.5px;
+  color: #94a3b8;
+  min-width: 38px;
+}
+
+.progress-bar {
+  position: relative;
+  height: 4px;
+  background: #334155;
+  border-radius: 9999px;
+  position: relative;
+}
+
+.progress {
+  
+  position: absolute;
+  height: 100%;
+  background: linear-gradient(to right, #22d3ee, #a855f7);
+  border-radius: 9999px;
+}
+
+/* Кнопки справа */
+.track-right {
+  display: flex;
+  align-items: center;
+}
+
+.track-controls {
+  display: flex;
+  gap: 18px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.play-btn {
+  color: #22d3ee;
+  font-size: 22px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin: 15px 30px 0 0;
+}
+
+.upload-track-btn {
+  background: rgba(255, 102, 204, 0.15);
+  border: 1px solid #ff66cc;
+  color: #ff66cc;
+  padding: 8px 18px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.upload-track-btn:hover {
+  background: #ff66cc;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #ff66cc;
+}
+
+
+/* profile.css — добавьте эти строки, если отсутствуют */
+.profile-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin: 15px 30px 0 0;
+}
+
+.edit-profile-btn,
+.upload-track-btn {
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-size: 14px;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-profile-btn {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+}
+
+.edit-profile-btn:hover {
+  background: #00ffff;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+.upload-track-btn {
+  background: rgba(255, 102, 204, 0.15);
+  border: 1px solid #ff66cc;
+  color: #ff66cc;
+}
+
+.upload-track-btn:hover {
+  background: #ff66cc;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #ff66cc;
+}
+
+.create-release-btn {
+  background: rgba(255, 102, 204, 0.2);
+  border: 1px solid #ff66cc;
+  color: #ff66cc;
+  padding: 8px 18px;
+  border-radius: 30px;
+  text-decoration: none;
 }

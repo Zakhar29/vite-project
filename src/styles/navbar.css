@@ -1,10 +1,16 @@
+
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 60px;
-  background-color: #0B0F1A;
-}
+  background: #000000FF;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+
+} 
 
 .navbar__logo {
   font-size: 22px;
@@ -20,6 +26,7 @@
 
 .navbar__links a {
   color: #cbd5e1;
+  font-style: montserrat;
 }
 
 .navbar__links a.active {
@@ -30,6 +37,12 @@
   display: flex;
   align-items: center;
   gap: 15px;
+  
+}
+
+.navbar__right input{
+  width: 256px;
+  height: 36px;
 }
 
 .navbar__search {
@@ -42,17 +55,28 @@
 }
 
 .login-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
+  
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 500;
+  width: 77.640625px; 
+  height: 39px;
+  margin-bottom: 20px;
+  
 }
 
+
 .register-btn {
-  background-color: #4F46E5;
+  color: #FFFFFFFF; /* white */
+  background: #5255F4FF; 
+  width: 169px; 
+  height: 40px;
   border: none;
   padding: 8px 14px;
   border-radius: 8px;
   color: white;
   cursor: pointer;
+  opacity: 1; 
+  border: none; 
+  border-radius: 6px; 
 }

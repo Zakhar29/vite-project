@@ -11,7 +11,7 @@ function HotDiscussions() {
 
   return (
     <section className="hot-section">
-      <SectionTitle title="Горячие обсуждения" />
+      <div class = "title_hot"><SectionTitle title="Горячие обсуждения" /></div>
 
       <div className="hot-grid">
         {discussions.map((item, index) => (

@@ -29,6 +29,7 @@ function Track() {
                   <input type="range" />
                   <span>3:04</span>
                 </div>
+                
               </div>
 
               <img
@@ -40,7 +41,7 @@ function Track() {
 
             {/* COMMENT INPUT */}
             <div className="comment-input">
-              <input placeholder="Написать комментарий..." />
+              <textarea name="kik" id="kik" placeholder="Написать комментарий..."></textarea>
               <div className="comment-actions">
                 <button className="cancel">Отмена</button>
                 <button className="send">Отправить</button>

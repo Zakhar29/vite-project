@@ -18,12 +18,7 @@ function PackHeader() {
           эксклюзивным пакетом звуков.
         </p>
 
-        <div className="pack-tags">
-          <span>Киберпанк</span>
-          <span>Электроника</span>
-          <span>Синтезаторы</span>
-          <span>Эмбиент</span>
-        </div>
+        
 
         <div className="pack-stats">
           <span>⬇ 12,589 загрузок</span>

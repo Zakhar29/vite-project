@@ -1,0 +1,122 @@
+.create-release-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.create-release-container {
+  background: rgba(20, 20, 40, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 28px;
+  padding: 30px;
+}
+
+.release-type-switch {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.release-type-switch button {
+  background: transparent;
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  padding: 8px 24px;
+  border-radius: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.release-type-switch button.active {
+  background: #00ffff;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+.tracks-section {
+  margin-top: 30px;
+}
+
+.tracks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.add-track-btn {
+  background: #ff66cc20;
+  border: 1px solid #ff66cc;
+  color: #ff66cc;
+  padding: 6px 16px;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.track-editor {
+  background: rgba(0,0,0,0.4);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+}
+
+.track-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: bold;
+  color: #00ffff;
+}
+
+.remove-track {
+  background: none;
+  border: none;
+  color: #ff66cc;
+  cursor: pointer;
+}
+
+.audio-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+
+.duration {
+  color: #00ffff;
+  margin-left: 10px;
+}
+
+.genres-select select {
+  width: 100%;
+  min-height: 100px;
+}
+
+/* переиспользуем стили из profileEdit.css для .neon-input и т.д. */
+
+.custom-file-upload {
+  margin-top: 8px;
+}
+
+.audio-upload-btn {
+  display: inline-block;
+  background: #1e2937;
+  color: #a5b4fc;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid #4f46e5;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 500;
+}
+
+.audio-upload-btn:hover {
+  background: #334155;
+  border-color: #6366f1;
+}
+
+.audio-upload-btn:active {
+  background: #4338ca;
+}

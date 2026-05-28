@@ -1,5 +1,5 @@
 import "../styles/hero.css";
-import heroImg from "../assets/hero.jpg"; // сюда потом положишь картинку
+import heroImg from "../assets/i.webp"; // сюда потом положишь картинку
 
 function Hero() {
   return (
@@ -8,7 +8,7 @@ function Hero() {
 
       <div className="hero__content">
         <h1>
-          Расслабьтесь с тщательно подобранной подборкой талантливых
+          Расслабьтесь с тщательно подобранной и подборкой талантливых
           музыкантов и принимайте участие в обсуждениях
         </h1>
       </div>

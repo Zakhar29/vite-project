@@ -1,4 +1,19 @@
+import { useState, useEffect } from 'react';
+
 function ProfileHeader() {
+  const [profileData, setProfileData] = useState({
+    avatar: '',
+    name: '',
+    bio: ''
+  });
+
+  useEffect(() => {
+    // Загружаем данные из localStorage при монтировании
+    const avatar = localStorage.getItem('profileAvatar') || 'https://i.pravatar.cc/100';
+    const name = localStorage.getItem('profileName') || 'ZAKHAR';
+    const bio = localStorage.getItem('profileBio') || 'Преданный своему делу продюсер и диджей создает яркие звуковые ландшафты в стиле синтвейв. Преданный своему делу продюсер и диджей создает яркие звуковые ландшафты в стиле синтвейв. Преданный своему делу продюсер и диджей создает яркие звуковые ландшафты в стиле синтвейв. Преданный своему делу продюсер и диджей создает яркие звуковые ландшафты в стиле синтвейв.';
+    setProfileData({ avatar, name, bio });
+  }, []);
   return (
     <div className="profile-header">
 
@@ -12,16 +27,25 @@ function ProfileHeader() {
         <div>
           <h1>ZAKHAR</h1>
 
-          <p>
-            Преданный своему делу продюсер и диджей
-            создает яркие звуковые ландшафты
-            в стиле синтвейв.
-          </p>
+            <div className="text_prof"><p>
+              Преданный своему делу продюсер и диджей
+              создает яркие звуковые ландшафты
+              в стиле синтвейв.
+              Преданный своему делу продюсер и диджей
+              создает яркие звуковые ландшафты
+              в стиле синтвейв.
+              Преданный своему делу продюсер и диджей
+              создает яркие звуковые ландшафты
+              в стиле синтвейв.
+              Преданный своему делу продюсер и диджей
+              создает яркие звуковые ландшафты
+              в стиле синтвейв.
+            </p></div>
         </div>
 
       </div>
 
-      <div className="profile-right">
+      <div className="profile-right"> 
 
         <div className="profile-stats">
           <div>
@@ -35,9 +59,7 @@ function ProfileHeader() {
           </div>
         </div>
 
-        <button className="follow-btn">
-          Подписаться
-        </button>
+        
 
       </div>
 

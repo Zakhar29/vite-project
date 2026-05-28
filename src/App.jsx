@@ -14,6 +14,12 @@ import Subscription from "./pages/Subscription";
 import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import { Routes, Route } from "react-router-dom";
+import ProfileEdit from "./pages/ProfileEdit";
+import UploadTrack from "./pages/UploadTrack";
+import Premium from "./pages/Premium";
+import Register from "./pages/Register";
+
+import CreateRelease from "./pages/CreateRelease";
 function App() {
   return (
     <>
@@ -32,6 +38,11 @@ function App() {
       <Route path="/subscription" element={<Subscription />} />
       <Route path="/notifications" element={<Notifications />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/profile/edit" element={<ProfileEdit />} />
+      <Route path="/upload-track" element={<UploadTrack />} />
+      <Route path="/create-release" element={<CreateRelease />} />
+      <Route path="/premium" element={<Premium />} />
+      <Route path="/register" element={<Register />} />
     </Routes>
     </>
   );

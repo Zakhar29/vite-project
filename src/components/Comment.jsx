@@ -27,7 +27,7 @@ function Comment() {
 
         <div className="comment-actions">
           <span>Ответить</span>
-          <span>12</span>
+           <span>12</span>
         </div>
 
       </div>

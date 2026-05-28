@@ -1,6 +1,8 @@
+
 .track-page {
   padding: 40px 60px 120px;
   color: white;
+  background: #000000FF;
 }
 
 .track-content {
@@ -14,7 +16,7 @@
 .track-main-card {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
-  background: #111827;
+  background: #171A1FFF;
   border-radius: 20px;
   padding: 35px;
   gap: 30px;
@@ -48,8 +50,9 @@
 .progress-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 25px;
+  width: 420px;
+  margin-top: 215px;
+  
 }
 
 .progress-bar input {
@@ -65,10 +68,11 @@
 
 .comment-input {
   margin-top: 30px;
-  background: #111827;
+  background: #000000FF;
   padding: 20px;
   border-radius: 15px;
 }
+
 
 .comment-input input {
   width: 100%;
@@ -79,19 +83,28 @@
   color: white;
 }
 
+#kik{
+  width: 776px; 
+  height: 80px;
+  background: #323743FF;
+}
 .comment-actions {
-  display: flex;
-  justify-content: flex-end;
+ 
   margin-top: 10px;
-  gap: 10px;
+  
+  padding-left: 655px;
 }
 
 .cancel {
+   
   background: transparent;
   border: none;
   color: #9ca3af;
   cursor: pointer;
+  margin-right: 20px;
 }
+
+
 
 .send {
   background: #6366f1;
@@ -215,7 +228,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: #312e81;
+  background: #404072FF;
   padding: 15px 60px;
   display: flex;
   justify-content: space-between;
@@ -230,6 +243,12 @@
 
 .player-left input {
   width: 400px;
+  height: 22px;
+}
+
+.player-left button{
+  background: #00000000;
+  border:none;
 }
 
 .player-track-info {

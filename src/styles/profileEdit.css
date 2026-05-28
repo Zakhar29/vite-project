@@ -1,0 +1,170 @@
+/* styles/profileEdit.css */
+body{ background-color: #000000FF;}
+
+.profile-edit-page {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.edit-form-container {
+  background: rgba(20, 20, 40, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.neon-border {
+  border: 1px solid #00ffff;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+}
+
+.edit-form-container h2 {
+  color: #00ffff;
+  text-shadow: 0 0 5px #00ffff;
+  margin-bottom: 25px;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  color: #ff66cc;
+  margin-bottom: 8px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.edit-avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #00ffff;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+.upload-btn {
+  background: #2a2a3a;
+  color: #00ffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: 1px solid #00ffff;
+  transition: 0.3s;
+}
+
+.upload-btn:hover {
+  background: #00ffff;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.neon-input,
+.neon-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid #ff66cc;
+  border-radius: 12px;
+  padding: 12px 15px;
+  color: #e0e0ff;
+  font-size: 16px;
+  transition: 0.3s;
+  font-family: inherit;
+}
+
+.neon-input:focus,
+.neon-textarea:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 8px #00ffff;
+}
+
+.neon-textarea {
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.neon-btn {
+  background: transparent;
+  border: 2px solid #00ffff;
+  color: #00ffff;
+  padding: 10px 28px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 16px;
+}
+
+.neon-btn:hover {
+  background: #00ffff;
+  color: #0a0a1a;
+  box-shadow: 0 0 15px #00ffff;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 2px solid #ff66cc;
+  color: #ff66cc;
+  padding: 10px 28px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.cancel-btn:hover {
+  background: #ff66cc;
+  color: #0a0a1a;
+  box-shadow: 0 0 15px #ff66cc;
+}
+
+/* Кнопка редактирования на странице профиля */
+.profile-edit-link {
+  display: flex;
+  justify-content: flex-end;
+  margin: 15px 30px 0 0;
+}
+
+.edit-profile-btn {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid #00ffff;
+  color: #00ffff;
+  padding: 8px 18px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-profile-btn:hover {
+  background: #00ffff;
+  color: #0a0a1a;
+  box-shadow: 0 0 10px #00ffff;
+}
