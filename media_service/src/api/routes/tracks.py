@@ -9,14 +9,15 @@ from src.utils.helpers import (
 from src.S3client.minio_client import S3Client
 from src.services.media import MediaService
 from src.utils.media_validate import prepare_upload_response, validate_file
+from pathlib import Path  
 
 router = APIRouter(prefix="/track", tags=["Track"])
 
 
-@router.post("/{album_id}/upload")
+@router.post("/{album_id}/{track_number}")
 async def upload_track(
         album_id: str,
-        track_number: int = Form(...),
+        track_number: int,
         file: UploadFile = File(...),
         media_service: MediaService = Depends(get_media_service),
         s3_client: S3Client = Depends(get_s3_client),

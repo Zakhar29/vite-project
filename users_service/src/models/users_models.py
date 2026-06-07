@@ -74,16 +74,16 @@ class Followers(Base):
 class Friends(Base):
     __tablename__ = "friends"
     __table_args__ = (
-        PrimaryKeyConstraint('follower_id', 'following_id'),
-        Index('idx_friends_follower_id', 'follower_id'),
-        Index('idx_friends_following_id', 'following_id'),
+        PrimaryKeyConstraint('friend1', 'friend2'),
+        Index('idx_friends_follower_id', 'friend1'),
+        Index('idx_friends_following_id', 'friend2'),
     )
 
-    follower_id: Mapped[uuid6.UUID] = mapped_column(  # изменено
+    friend1: Mapped[uuid6.UUID] = mapped_column(  # изменено
         UUID,
         ForeignKey('users.id', ondelete="CASCADE")
     )
-    following_id: Mapped[uuid6.UUID] = mapped_column(  # изменено
+    friend2: Mapped[uuid6.UUID] = mapped_column(  # изменено
         UUID,
         ForeignKey('users.id', ondelete="CASCADE")
     )

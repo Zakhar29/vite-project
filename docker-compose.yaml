@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./init-scripts:/docker-entrypoint-initdb.d
     networks:
       - microservices_network
@@ -64,6 +64,7 @@ services:
     environment:
       DATABASE_URL: postgresql://admin:postgres@postgres:5432/melo_users
       REDIS_URL: redis://redis:6379
+      SECRET_KEY: your-secret-key-change-in-production
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,6 +92,144 @@ services:
     volumes:
       - ./media_service:/app
 
+  mongodb:
+    image: mongo:7
+    container_name: microservices_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: postgres
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  social_feed_service:
+    build: ./social_feed_service
+    container_name: social_feed_service
+    ports:
+      - "8002:8002"
+    environment:
+      MONGODB_URL: mongodb://admin:postgres@mongodb:27017/?authSource=admin
+      MONGODB_DATABASE: melo_social
+      USERS_SERVICE_URL: http://users_service:8000
+      SECRET_KEY: your-secret-key-change-in-production
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+    networks:
+      - microservices_network
+    volumes:
+      - ./social_feed_service:/app
+
+  comment_service:
+    build: ./comment_service
+    container_name: comment_service
+    ports:
+      - "8003:8003"
+    environment:
+      MONGODB_URL: mongodb://admin:postgres@mongodb:27017/?authSource=admin
+      MONGODB_DATABASE: melo_comments
+      USERS_SERVICE_URL: http://users_service:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+    networks:
+      - microservices_network
+    volumes:
+      - ./comment_service:/app
+
+  music_catalog_service:
+    build: ./music_catalog_service
+    container_name: music_catalog_service
+    ports:
+      - "8004:8004"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: admin
+      DB_PASSWORD: postgres
+      DB_NAME: melo_tracks
+      SECRET_KEY: your-secret-key-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - microservices_network
+    volumes:
+      - ./music_catalog_service:/app
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - microservices_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  gateway_service:
+    build: ./gateway_service
+    container_name: gateway_service
+    ports:
+      - "8080:8080"
+    environment:
+      USERS_SERVICE_URL: http://users_service:8000
+      MEDIA_SERVICE_URL: http://media_service:8001
+      SOCIAL_SERVICE_URL: http://social_feed_service:8002
+      COMMENTS_SERVICE_URL: http://comment_service:8003
+      CATALOG_SERVICE_URL: http://music_catalog_service:8004
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+      media_service:
+        condition: service_started
+      social_feed_service:
+        condition: service_started
+      comment_service:
+        condition: service_started
+      music_catalog_service:
+        condition: service_started
+    networks:
+      - microservices_network
+    volumes:
+      - ./gateway_service:/app
+
   frontend:
     build: ./frontend
     container_name: frontend
@@ -113,3 +252,4 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  mongo_data:

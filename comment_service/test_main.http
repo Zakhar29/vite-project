@@ -1,11 +1,98 @@
-# Test your FastAPI endpoints
+# Comment Service (port 8003)
 
-GET http://127.0.0.1:8000/
-Accept: application/json
+GET http://127.0.0.1:8003/health
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
-Accept: application/json
+# --- Посты ---
+
+GET http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments?root_only=true
+
+###
+
+POST http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Отличный пост!"
+}
+
+###
+
+GET http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments/{{comment_id}}
+
+###
+
+GET http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments/{{comment_id}}/replies
+
+###
+
+POST http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments/{{parent_comment_id}}/replies
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Согласен!"
+}
+
+###
+
+PUT http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Исправленный текст"
+}
+
+###
+
+DELETE http://127.0.0.1:8003/api/posts/674a1b2c3d4e5f6789012345/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# --- Треки ---
+
+GET http://127.0.0.1:8003/api/tracks/a1b2c3d4-e5f6-7890-abcd-ef1234567890/comments?root_only=true
+
+###
+
+POST http://127.0.0.1:8003/api/tracks/a1b2c3d4-e5f6-7890-abcd-ef1234567890/comments
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Крутой момент!",
+  "track_timecode": 42
+}
+
+###
+
+POST http://127.0.0.1:8003/api/tracks/a1b2c3d4-e5f6-7890-abcd-ef1234567890/comments/{{parent_comment_id}}/replies
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Точно!",
+  "track_timecode": 45
+}
+
+###
+
+PUT http://127.0.0.1:8003/api/tracks/a1b2c3d4-e5f6-7890-abcd-ef1234567890/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "comment": "Обновлённый комментарий",
+  "track_timecode": 50
+}
+
+###
+
+DELETE http://127.0.0.1:8003/api/tracks/a1b2c3d4-e5f6-7890-abcd-ef1234567890/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
 
 ###

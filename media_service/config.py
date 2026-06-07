@@ -1,5 +1,19 @@
 from enum import Enum
 from dataclasses import dataclass
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    SECRET_KEY: str = "your-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
+
+    USERS_SERVICE_URL: str = "http://localhost:8000"
+
+    class Config:
+        env_file = ".env"
+
+
+settings = Settings()
 
 
 class MediaType(Enum):

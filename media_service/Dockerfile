@@ -25,7 +25,8 @@ RUN pip install --no-cache-dir \
     python-dotenv==1.2.2 \
     numpy==2.4.4 \
     ImageIO==2.37.3 \
-    imageio-ffmpeg==0.6.0
+    imageio-ffmpeg==0.6.0 \
+    python-jose==3.5.0
 
 COPY . .
 

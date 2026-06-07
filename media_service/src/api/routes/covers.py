@@ -9,11 +9,12 @@ from src.utils.helpers import (
 from src.S3client.minio_client import S3Client
 from src.services.media import MediaService
 from src.utils.media_validate import prepare_upload_response, validate_file
+from pathlib import Path  
 
 router = APIRouter(prefix="/cover", tags=["Cover"])
 
 
-@router.post("/{album_id}/upload")
+@router.post("/{album_id}")
 async def upload_album_cover(
         album_id: str,
         file: UploadFile = File(...),
@@ -47,7 +48,7 @@ async def upload_album_cover(
     return prepare_upload_response(media_paths, uploaded_keys)
 
 
-@router.delete("/{album_id}/cover")
+@router.delete("/{album_id}")
 async def delete_album_cover(
         album_id: str,
         sizes: list[str] = Query(["small", "medium", "large"]),
@@ -60,7 +61,7 @@ async def delete_album_cover(
     for size in sizes:
         path = media_service.get_album_cover_path(album_id=album_id, size=size)
         try:
-            await s3_client._client.delete_object(Bucket=path.bucket, Key=path.key)
+            await s3_client.client.delete_object(Bucket=path.bucket, Key=path.key)
             deleted.append({"size": size, "key": path.key, "success": True})
         except Exception as e:
             deleted.append({"size": size, "key": path.key, "success": False, "error": str(e)})

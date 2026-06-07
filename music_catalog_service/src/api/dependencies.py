@@ -1,29 +1,36 @@
-from fastapi import Depends, HTTPException, Header
-from pydantic import BaseModel, UUID
-from jose import jwt, JWTError
+from uuid import UUID
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from pydantic import BaseModel
+
 from config import settings
+
+security = HTTPBearer()
 
 
 class CurrentUser(BaseModel):
     id: UUID
-    # role: str = "user"  # можно добавить при необходимости
 
 
 async def get_current_user(
-        authorization: str = Header(...)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> CurrentUser:
     try:
-        scheme, token = authorization.split()
-        if scheme.lower() != "bearer":
-            raise HTTPException(401, "Invalid authentication scheme")
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+    except JWTError as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from exc
 
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id = payload.get("sub")  # или "user_id", зависит от вашего Auth-сервиса
-        if not user_id:
-            raise HTTPException(401, "Invalid token payload")
+    user_id = payload.get("user_id") or payload.get("sub")
+    if not user_id or payload.get("type") not in (None, "access"):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token payload")
 
+    try:
         return CurrentUser(id=UUID(user_id))
-    except JWTError as e:
-        raise HTTPException(401, f"Token verification failed: {str(e)}")
-    except Exception:
-        raise HTTPException(401, "Invalid authorization header")
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid user id") from exc

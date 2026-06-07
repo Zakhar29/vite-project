@@ -7,7 +7,9 @@ from sqlalchemy import (
     UUID,
     ForeignKey,
     Numeric,
-    CheckConstraint
+    CheckConstraint,
+    PrimaryKeyConstraint,
+    Index
 )
 from sqlalchemy.sql import func
 from sqlalchemy.orm import mapped_column, Mapped
@@ -20,52 +22,81 @@ from src.models.models import Base
 class TracksStatuses(Base):
     __tablename__ = 'tracks_statuses'
     id: Mapped[int] = mapped_column(SmallInteger, primary_key=True)
-    title: str = mapped_column(VARCHAR(50), nullable=False)
+    title: Mapped[str] = mapped_column(VARCHAR(50), nullable=False)
 
 
 class Tracks(Base):
     __tablename__ = "tracks"
 
     id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid6.uuid7)
-    track_url: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    track_url: Mapped[str] = mapped_column(Text, nullable=False)
     author_id: Mapped[uuid6.UUID] = mapped_column(UUID, nullable=False)
     title: Mapped[str] = mapped_column(VARCHAR(100), index=True)
-    track_text: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    track_text: Mapped[str] = mapped_column(Text, nullable=False)
     bpm: Mapped[Decimal] = mapped_column(
         Numeric(precision=6, scale=2),
         CheckConstraint(sqltext="bpm >= 10 AND bpm <= 1000"),
-        nullable=False
+        nullable=True
     )
     status: Mapped[int] = mapped_column(SmallInteger, ForeignKey('tracks_statuses.id'))
     liked_quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     comments_quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     listening_quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
-    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class TrackFeats(Base):
+    __tablename__ = "track_feats"
+
+    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id', ondelete="CASCADE"), primary_key=True)
+    feat_user_id: Mapped[uuid6.UUID] = mapped_column(UUID, primary_key=True)
+    number: Mapped[int] = mapped_column(
+        SmallInteger,
+        CheckConstraint("number > 0 and number < 5")
+    )
+
+    __table_args__ = (
+        PrimaryKeyConstraint('track_id', 'feat_user_id'),
+    )
+
 
 
 class LikedTracks(Base):
     __tablename__ = "liked_tracks"
 
-    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id'), ondelete="CASCADE")
-    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, nullable=False)
+    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id', ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        PrimaryKeyConstraint('track_id', 'user_id'),
+    )
 
 
 class ListeningTracks(Base):
     __tablename__ = "listening_tracks"
 
-    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id'), ondelete="CASCADE")
-    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, nullable=False)
+    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id', ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, primary_key=True)
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
+
+    __table_args__ = (
+        PrimaryKeyConstraint('track_id', 'user_id'),
+    )
 
 
 class TrackFeaturing(Base):
     __tablename__ = "track_featuring"
 
-    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id'), ondelete="CASCADE")
-    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, nullable=False)
+    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id', ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[uuid6.UUID] = mapped_column(UUID, primary_key=True)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('track_id', 'user_id'),
+    )
+
 
 
 class Genres(Base):
@@ -78,16 +109,21 @@ class Genres(Base):
 class GenreParents(Base):
     __tablename__ = "genre_parents"
 
-    child_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id'), ondelete="CASCADE")
-    parent_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id'), ondelete="CASCADE")
+    child_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id', ondelete="CASCADE"), primary_key=True)
+    parent_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id', ondelete="CASCADE"), primary_key=True)
 
     __table_args__ = (
         CheckConstraint("child_id != parent_id", name="no_self_reference"),
+        PrimaryKeyConstraint('child_id', 'parent_id'),
     )
 
 
 class TrackGenres(Base):
     __tablename__ = "track_genres"
 
-    genre_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id'), ondelete="CASCADE")
-    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id'), ondelete="CASCADE")
+    genre_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey('genres.id', ondelete="CASCADE"), primary_key=True)
+    track_id: Mapped[uuid6.UUID] = mapped_column(UUID, ForeignKey('tracks.id', ondelete="CASCADE"), primary_key=True)
+
+    __table_args__ = (
+        PrimaryKeyConstraint('genre_id', 'track_id'),
+    )

@@ -48,13 +48,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db():
     """Инициализация базы данных (создание таблиц)"""
-    from src.models.users_models import Base  # Импортируйте вашу базу моделей
+    from src.models.models import Base  # Импортируйте вашу базу моделей
     async with engine.begin() as conn:
         # await conn.run_sync(Base.metadata.drop_all)  # Осторожно! Удаляет все таблицы
         await conn.run_sync(Base.metadata.create_all)
 
-        album_result = await conn.execute(select(UserStatuses))
-        album_statuses = album_result.scalars().all()
+        album_s = await conn.execute(select(AlbumStatuses))
+        album_statuses = album_s.scalars().all()
+
+        album_t = await conn.execute(select(AlbumTypes))
+        album_types = album_t.scalars().all()
+
+        track_s = await conn.execute(select(TracksStatuses))
+        track_statuses = track_s.scalars().all()
+        
+        genre_s = await conn.execute(select(Genres))
+        genres = genre_s.scalars().all()
 
         # Если статусов нет, заполняем
         if not album_statuses:
@@ -66,16 +75,18 @@ async def init_db():
                      """)
             )
 
+        if not album_types:
             await conn.execute(
                 text("""
                      INSERT INTO album_types (id, title)
                      VALUES (1, 'single'),
                             (2, 'ep'),
-                            (3, 'album')
+                            (3, 'album'),
                             (4, 'mix')
                      """)
             )
 
+        if not track_statuses:
             await conn.execute(
                 text("""
                      INSERT INTO tracks_statuses (id, title)
@@ -83,6 +94,8 @@ async def init_db():
                             (2, 'public')
                      """)
             )
+
+        if not genres:
             await conn.execute(
                 text("""
                      INSERT INTO genres (id, title)
@@ -136,7 +149,6 @@ async def init_db():
                             (48, 'psychedelic rock'),
                             (49, 'hard rock'),
                             (50, 'progressive rock')
-                     ON CONFLICT (id) DO NOTHING
                      """)
             )
 
@@ -177,10 +189,9 @@ async def init_db():
                             (36, 17), -- indie rock -> indie
                             (37, 18), -- alternative rock -> alternative
                             (23, 21), -- house -> disco
-                            (31, 20), -- afrobeats -> world
-                     ON CONFLICT (child_id, parent_id) DO NOTHING
+                            (31, 20) -- afrobeats -> world
                      """)
             )
             print("✅ User statuses have been populated")
         else:
-            print(f"✅ User statuses already exist ({len(statuses)} records)")
+            print(f"✅ User statuses already exist)")

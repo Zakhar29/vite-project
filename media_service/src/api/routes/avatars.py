@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
-from src.api.dependencies import get_media_service, get_s3_client
+from src.api.dependencies import CurrentUser, get_current_user, get_media_service, get_s3_client
 from src.utils.helpers import convert_image_to_avif_sizes
 from src.S3client.minio_client import S3Client
 from src.services.media import MediaService
 from src.utils.media_validate import prepare_upload_response, validate_file
+from pathlib import Path  
 
 router = APIRouter(prefix="/avatar", tags=["Avatar"])
 
 
-@router.post("/{user_id}/upload")
+@router.post("")
 async def upload_avatar(
-        user_id: str,
+        user: CurrentUser = Depends(get_current_user),
         file: UploadFile = File(...),
         replace: bool = Form(True),
         media_service: MediaService = Depends(get_media_service),
@@ -28,7 +29,7 @@ async def upload_avatar(
     media_paths = []
 
     for file_bytes, ext, size_name in result:
-        path = media_service.get_avatar_path(user_id=user_id, size=size_name)
+        path = media_service.get_avatar_path(user_id=user.id, size=size_name)
 
         if not replace:
             try:
@@ -50,9 +51,9 @@ async def upload_avatar(
     return prepare_upload_response(media_paths, uploaded_keys)
 
 
-@router.delete("/{user_id}")
+@router.delete("")
 async def delete_avatar(
-        user_id: str,
+        user: CurrentUser = Depends(get_current_user),
         sizes: list[str] = Query(["small", "medium", "large"]),
         media_service: MediaService = Depends(get_media_service),
         s3_client: S3Client = Depends(get_s3_client),
@@ -61,7 +62,7 @@ async def delete_avatar(
 
     deleted = []
     for size in sizes:
-        path = media_service.get_avatar_path(user_id=user_id, size=size)
+        path = media_service.get_avatar_path(user_id=user.id, size=size)
         try:
             await s3_client.client.delete_object(Bucket=path.bucket, Key=path.key)
             deleted.append({"size": size, "key": path.key, "success": True})

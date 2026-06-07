@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Melo Gateway UI</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #111; background: #f4f4f7; }
+    body { max-width: 960px; margin: 0 auto; padding: 24px; }
+    h1 { margin-bottom: 8px; }
+    section { background: #fff; border-radius: 12px; padding: 16px; margin: 16px 0; box-shadow: 0 2px 8px #0001; }
+    label { display: block; margin: 8px 0 4px; font-size: 14px; }
+    input, select, textarea, button { width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 8px; }
+    button { background: #5b21b6; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #4c1d95; }
+    pre { background: #111; color: #0f0; padding: 12px; border-radius: 8px; overflow: auto; max-height: 320px; font-size: 12px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .token { word-break: break-all; font-size: 12px; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>Melo Gateway</h1>
+  <p>BFF на порту 8080 — регистрация, посты, альбомы, лента.</p>
+  <p class="token" id="tokenInfo">Токен: не авторизован</p>
+
+  <section>
+    <h2>Регистрация / Вход</h2>
+    <div class="row">
+      <div>
+        <label>Username</label><input id="regUsername" value="demo_user" />
+        <label>Nickname</label><input id="regNickname" value="Demo" />
+        <label>Email</label><input id="regEmail" type="email" value="demo@example.com" />
+        <label>Password</label><input id="regPassword" type="password" value="secret123" />
+        <button onclick="register()">Зарегистрироваться</button>
+      </div>
+      <div>
+        <label>Email</label><input id="loginEmail" type="email" value="demo@example.com" />
+        <label>Password</label><input id="loginPassword" type="password" value="secret123" />
+        <button onclick="login()">Войти</button>
+        <button onclick="loadMe()">GET /api/auth/me</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Создать пост (текст + фото)</h2>
+    <label>Текст</label>
+    <textarea id="postText">Привет из gateway UI!</textarea>
+    <label>Изображения</label>
+    <input id="postImages" type="file" accept="image/*" multiple />
+    <button onclick="createPost()">Создать пост</button>
+    <label>ID поста для просмотра</label>
+    <input id="postId" placeholder="ObjectId поста" />
+    <button onclick="getPost()">Открыть пост (+ автор + комментарии)</button>
+  </section>
+
+  <section>
+    <h2>Создать альбом</h2>
+    <label>Название</label><input id="albumTitle" value="My Single" />
+    <label>Тип</label>
+    <select id="albumType"><option>single</option><option>ep</option><option>album</option><option>mixtape</option></select>
+    <label>Обложка</label><input id="albumCover" type="file" accept="image/*" />
+    <label>Название трека</label><input id="trackTitle" value="Track 1" />
+    <label>Аудио файл</label><input id="trackFile" type="file" accept="audio/*" />
+    <label>BPM (10-1000, необязательно)</label>
+    <input id="trackBpm" type="number" min="10" max="1000" step="0.01" placeholder="например, 120" />
+    <button onclick="createAlbum()">Создать и опубликовать альбом</button>
+    
+
+    <label>ID альбома</label><input id="albumId" placeholder="UUID альбома" />
+    <button onclick="getAlbum()">Открыть альбом (+ автор)</button>
+    <label>ID трека</label><input id="trackId" placeholder="UUID трека" />
+    <button onclick="getTrack()">Открыть трек (+ автор + комментарии)</button>
+  </section>
+
+  <section>
+    <h2>Лента постов</h2>
+    <button onclick="loadFeed()">GET /api/feed</button>
+  </section>
+
+  <section>
+    <h2>Ответ API</h2>
+    <pre id="output">{}</pre>
+  </section>
+
+  <script>
+    const API = window.location.origin;
+    let token = localStorage.getItem('access_token') || '';
+
+    function show(data) {
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+    function updateTokenInfo() {
+      document.getElementById('tokenInfo').textContent = token
+        ? 'Токен: ' + token.slice(0, 24) + '...'
+        : 'Токен: не авторизован';
+    }
+    updateTokenInfo();
+
+    async function api(path, options = {}) {
+      const headers = options.headers || {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(API + path, { ...options, headers });
+      const text = await res.text();
+      let body;
+      try { body = JSON.parse(text); } catch { body = text; }
+      if (!res.ok) throw { status: res.status, body };
+      return body;
+    }
+
+    async function register() {
+      try {
+        const body = await api('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('regUsername').value,
+            nickname: document.getElementById('regNickname').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value,
+          }),
+        });
+        token = body.access_token;
+        localStorage.setItem('access_token', token);
+        updateTokenInfo();
+        show(body);
+      } catch (e) { show(e); }
+    }
+
+    async function login() {
+      try {
+        const body = await api('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('loginEmail').value,
+            password: document.getElementById('loginPassword').value,
+          }),
+        });
+        token = body.access_token;
+        localStorage.setItem('access_token', token);
+        updateTokenInfo();
+        show(body);
+      } catch (e) { show(e); }
+    }
+
+    async function loadMe() {
+      try { show(await api('/api/auth/me')); } catch (e) { show(e); }
+    }
+
+    async function createPost() {
+      const fd = new FormData();
+      fd.append('text', document.getElementById('postText').value);
+      for (const f of document.getElementById('postImages').files) fd.append('images', f);
+      try {
+        const res = await fetch(API + '/api/posts', {
+          method: 'POST',
+          headers: token ? { Authorization: 'Bearer ' + token } : {},
+          body: fd,
+        });
+        show(await res.json());
+      } catch (e) { show(e); }
+    }
+
+    async function getPost() {
+      const id = document.getElementById('postId').value;
+      try { show(await api('/api/posts/' + id)); } catch (e) { show(e); }
+    }
+
+    async function createAlbum() {
+      const fd = new FormData();
+      fd.append('title', document.getElementById('albumTitle').value);
+      fd.append('album_type', document.getElementById('albumType').value);
+      
+      // 🔥 Получаем BPM (может быть пустым)
+      const bpmValue = document.getElementById('trackBpm').value;
+      const bpm = bpmValue ? parseFloat(bpmValue) : null;
+      
+      fd.append('tracks_json', JSON.stringify([{
+        title: document.getElementById('trackTitle').value,
+        text: '',
+        bpm: bpm,  // 🔥 Добавляем bpm (может быть null)
+        file_index: 0,
+      }]));
+      
+      const cover = document.getElementById('albumCover').files[0];
+      if (cover) fd.append('cover', cover);
+      const track = document.getElementById('trackFile').files[0];
+      if (track) fd.append('track_files', track);
+      
+      try {
+        const res = await fetch(API + '/api/albums', {
+          method: 'POST',
+          headers: token ? { Authorization: 'Bearer ' + token } : {},
+          body: fd,
+        });
+        const data = await res.json();
+        show(data);
+        if (data.album?.id) document.getElementById('albumId').value = data.album.id;
+      } catch (e) { show(e); }
+    }
+
+    async function getAlbum() {
+      try { show(await api('/api/albums/' + document.getElementById('albumId').value)); } catch (e) { show(e); }
+    }
+
+    async function getTrack() {
+      try { show(await api('/api/tracks/' + document.getElementById('trackId').value)); } catch (e) { show(e); }
+    }
+
+    async function loadFeed() {
+      try { show(await api('/api/feed')); } catch (e) { show(e); }
+    }
+  </script>
+</body>
+</html>

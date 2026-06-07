@@ -138,6 +138,7 @@ async def convert_image_to_avif_sizes(
             if os.path.exists(tmp):
                 os.unlink(tmp)
 
+
 async def convert_image_to_avif(
         input_file: UploadFile,
 ) -> tuple[Optional[list[tuple[bytes, str, str]]], str]:
@@ -201,6 +202,7 @@ async def convert_image_to_avif(
         for tmp in temp_outputs:
             if os.path.exists(tmp):
                 os.unlink(tmp)
+
 
 async def convert_video_to_mp4_h264(
         input_file: UploadFile,

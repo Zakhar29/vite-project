@@ -1,0 +1,9 @@
+{
+  "text": "Привет, лента!",
+  "media": [
+    {
+      "type": "image",
+      "url": "http://localhost:9000/media/posts/img1.jpg"
+    }
+  ]
+}

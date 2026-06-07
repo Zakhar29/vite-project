@@ -1,11 +1,46 @@
-# Test your FastAPI endpoints
+# Social Feed Service (port 8002)
 
-GET http://127.0.0.1:8000/
+GET http://127.0.0.1:8002/health
 Accept: application/json
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
+GET http://127.0.0.1:8002/api/posts?skip=0&limit=20
 Accept: application/json
+
+###
+
+GET http://127.0.0.1:8002/api/posts/{{post_id}}
+Accept: application/json
+
+###
+
+# Создание поста (нужен Bearer access_token из users_service)
+# В PowerShell multiline curl из Swagger ломает JSON — используйте этот .http файл или examples/create_post.json
+POST http://127.0.0.1:8002/api/posts
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "text": "Привет, лента!",
+  "media": [
+    { "type": "image", "url": "http://localhost:9000/media/posts/img1.jpg" }
+  ]
+}
+
+###
+
+PUT http://127.0.0.1:8002/api/posts/{{post_id}}
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "text": "Обновлённый текст"
+}
+
+###
+
+DELETE http://127.0.0.1:8002/api/posts/{{post_id}}
+Authorization: Bearer {{access_token}}
 
 ###
