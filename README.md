@@ -20,7 +20,7 @@ If you are developing a production application, we recommend using TypeScript wi
 
 
 # Навигация по страницам
-Список страниц с их Route(взято из папки App.jsx ; путь к файлу: /frontend/src/App.jsx) :
+Список страниц с их Route(взято из файла App.jsx ; путь к файлу: /frontend/src/App.jsx) :
 
 <Routes>
       {/* Главная страница */}
