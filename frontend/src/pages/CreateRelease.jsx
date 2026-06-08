@@ -10,7 +10,7 @@ function CreateRelease() {
 
   const [formData, setFormData] = useState({
     title: '',
-    artist: 'Zakhar',
+    artist: 'Zakhar',        // оставляем в данных, но не показываем поле
     cover: null,
     coverPreview: 'https://picsum.photos/300/300',
     year: new Date().getFullYear(),
@@ -159,24 +159,17 @@ function CreateRelease() {
             </div>
           </div>
 
+          {/* Только название */}
           <div className="form-group">
             <label>Название {getTypeName().toLowerCase()}</label>
-            <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} required className="neon-input" />
-          </div>
-
-          <div className="form-group">
-            <label>Исполнитель</label>
-            <input type="text" value={formData.artist} onChange={e => setFormData({...formData, artist: e.target.value})} className="neon-input" />
-          </div>
-
-          <div className="form-group">
-            <label>Год выпуска</label>
-            <input type="number" value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} className="neon-input" />
-          </div>
-
-          <div className="form-group">
-            <label>Описание</label>
-            <textarea rows="3" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="neon-textarea" />
+            <input 
+              type="text" 
+              value={formData.title} 
+              onChange={e => setFormData({...formData, title: e.target.value})} 
+              required 
+              className="neon-input" 
+              placeholder="Введите название релиза"
+            />
           </div>
 
           {/* Треки */}
@@ -204,7 +197,6 @@ function CreateRelease() {
                   <input type="text" value={track.title} onChange={e => updateTrack(track.id, 'title', e.target.value)} required className="neon-input" />
                 </div>
 
-                {/* Аудиофайл */}
                 <div className="form-group audio-upload">
                   <label>Аудиофайл</label>
                   <div className="custom-file-upload">
@@ -222,7 +214,6 @@ function CreateRelease() {
                   {track.duration && <span className="duration">Длительность: {track.duration}</span>}
                 </div>
 
-                {/* BPM */}
                 <div className="form-group">
                   <label>BPM (темп)</label>
                   <input 
@@ -235,7 +226,6 @@ function CreateRelease() {
                   />
                 </div>
 
-                {/* Жанры */}
                 <div className="form-group genres-select">
                   <label>Жанры (можно несколько)</label>
                   <select 
@@ -254,7 +244,6 @@ function CreateRelease() {
                   <small>Удерживайте Ctrl (или Cmd) для выбора нескольких жанров</small>
                 </div>
 
-                {/* Текст песни */}
                 <div className="form-group">
                   <label>Текст песни (опционально)</label>
                   <textarea 
