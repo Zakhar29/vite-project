@@ -6,7 +6,7 @@ from sqlalchemy import select
 import uuid
 
 from src.db.postgres_engine import get_db
-from src.models.albums_models import Albums, AlbumStatuses, AlbumTracks
+from src.models.albums_models import Albums, AlbumStatuses, AlbumTracks, AlbumTypes
 from src.models.tracks_models import Tracks, TracksStatuses, Genres, TrackGenres, TrackFeats
 # ... ваши импорты ...
 
@@ -39,7 +39,11 @@ async def build_album_response(
     )
     tracks = tracks_select.scalars().all()
     tracks_full = []
-    
+    album_type_select = await db.execute(
+        select(AlbumTypes)
+        .where(AlbumTypes.id == album.type)
+    )
+    album_type = album_type_select.scalar_one_or_none()
     for track in tracks:
         track_genres = await db.execute(
             select(Genres)
@@ -62,7 +66,8 @@ async def build_album_response(
         "id": str(album.id),
         "title": album.title,
         "cover_url": album.cover_url,
-        "type": album.type,
+        "type_id": album_type.id,
+        "type": album_type.title,
         "published_at": album.published_at.isoformat() if album.published_at else None,
         "tracks": tracks_full
     }
@@ -78,7 +83,14 @@ async def get_track_full(
     
     if not track:
         raise HTTPException(404, "Track not found")
-    
+
+    album_select = await db.execute(
+        select(Albums)
+        .join(AlbumTracks, AlbumTracks.album_id == Albums.id)
+        .where(AlbumTracks.track_id == track_id)
+    )
+    album = album_select.scalar_one_or_none()
+
     track_genres = await db.execute(
         select(Genres)
         .where(Genres.id.in_(select(TrackGenres.genre_id).where(TrackGenres.track_id == track_id)))
@@ -90,12 +102,15 @@ async def get_track_full(
     return {
         "track_id": track.id,
         "title": track.title,
+        "album_id": str(album.id),
+        "cover_url": album.cover_url,
         "author_id": track.author_id,
         "feats": [tf.feat_user_id for tf in track_feats.scalars().all()],
         "track_url": track.track_url,
         "track_text": track.track_text,
         "bpm": float(track.bpm) if track.bpm else None,
         "genres": [g.title for g in track_genres.scalars().all()],
+        "listening_quantity": track.listening_quantity,
         "liked_quantity": track.liked_quantity,
         "comments_quantity": track.comments_quantity,
         "published_at": track.published_at
@@ -112,7 +127,14 @@ async def get_track(
     
     if not track:
         raise HTTPException(404, "Track not found")
-    
+
+    album_select = await db.execute(
+        select(Albums)
+        .join(AlbumTracks, AlbumTracks.album_id == Albums.id)
+        .where(AlbumTracks.track_id == track_id)
+    )
+    album = album_select.scalar_one_or_none()
+
     track_genres = await db.execute(
         select(Genres)
         .where(Genres.id.in_(select(TrackGenres.genre_id).where(TrackGenres.track_id == track_id)))
@@ -124,6 +146,8 @@ async def get_track(
     return {
         "track_id": track.id,
         "title": track.title,
+        "album_id": str(album.id),
+        "cover_url": album.cover_url,
         "author_id": track.author_id,
         "feats": [tf.feat_user_id for tf in track_feats.scalars().all()],
         "track_url": track.track_url,

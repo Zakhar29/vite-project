@@ -14,39 +14,34 @@ from src.models.tracks_models import Genres
 router = APIRouter(prefix="/get_dirs_lists", tags=["Public Music"])
 
 
-@router.get("/genres")
-async def get_genres(
-        db: AsyncSession = Depends(get_db)
-):
-    genres = await db.execute(select(Genres)).scalars().all()
-
-    if not genres_select:
-        raise HTTPException(404, "Genres not found")
-
-    return {
-        [
-            {
-                "genre_id": genres.id,
-                "title": genres.title
-            }
-        ]
-    }
-
 @router.get("/album_types")
 async def get_album_types(
         db: AsyncSession = Depends(get_db)
 ):
-    types = await db.execute(select(AlbumTypes)).scalars().all()
-
-    if not genres_select:
-        raise HTTPException(404, "Genres not found")
+    """Получение списка типов альбомов"""
+    result = await db.execute(select(AlbumTypes))
+    items = result.scalars().all()
 
     return {
-        [
-            {
-                "type_id": types.id,
-                "title": types.title
-            }
+        "items": [
+            {"id": item.id, "title": item.title}
+            for item in items
+        ]
+    }
+
+
+@router.get("/genres")
+async def get_genres(
+        db: AsyncSession = Depends(get_db)
+):
+    """Получение списка жанров"""
+    result = await db.execute(select(Genres))
+    items = result.scalars().all()
+
+    return {
+        "items": [
+            {"id": item.id, "title": item.title}
+            for item in items
         ]
     }
 

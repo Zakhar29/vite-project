@@ -40,7 +40,7 @@ class Albums(Base):
     title: Mapped[str] = mapped_column(VARCHAR(100), nullable=False)
     type: Mapped[int] = mapped_column(SmallInteger, ForeignKey('album_types.id'))
     status: Mapped[int] = mapped_column(SmallInteger, ForeignKey('album_statuses.id'))
-    cover_url: Mapped[str] = mapped_column(Text, unique=True)
+    cover_url: Mapped[str] = mapped_column(Text)
     liked_quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     follower_quantity: Mapped[int] = mapped_column(BigInteger, default=0)
     listening_quantity: Mapped[int] = mapped_column(BigInteger, default=0)

@@ -103,6 +103,36 @@ class PostService:
         items = [_serialize_post(doc) async for doc in cursor]
         return items, total
 
+    async def list_posts_by_authors(
+            self,
+            author_ids: Optional[list[str]] = None,
+            skip: int = 0,
+            limit: int = 20,
+            sort_by: str = "created_at",
+            sort_order: str = "desc"
+    ) -> tuple[list[dict[str, Any]], int]:
+        """Список постов от указанных авторов"""
+
+        # Если список авторов пуст — возвращаем пустой результат
+        if not author_ids:
+            return [], 0
+
+        query = {"author_id": {"$in": [str(aid) for aid in author_ids]}}
+
+        total = await self.collection.count_documents(query)
+
+        sort_direction = -1 if sort_order == "desc" else 1
+
+        cursor = (
+            self.collection.find(query)
+            .sort(sort_by, sort_direction)
+            .skip(skip)
+            .limit(limit)
+        )
+
+        items = [self._serialize_post(doc) async for doc in cursor]
+        return {"items": items, "total": total}
+
     async def update(
         self, post_id: str, author_id: UUID, data: PostUpdate
     ) -> dict[str, Any]:

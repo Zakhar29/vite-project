@@ -4,7 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Body, Depends, Query, status
 
-from src.api.dependencies import CurrentUser, get_current_user
+from src.api.dependencies import CurrentUser, get_current_user, get_post_service
 from src.api.schemas import PostCreate, PostListResponse, PostResponse, PostUpdate
 from src.services.post_service import PostService
 
@@ -13,9 +13,6 @@ router = APIRouter(
     tags=["posts"],
 )
 
-
-def get_post_service() -> PostService:
-    return PostService()
 
 
 @router.post(
@@ -129,8 +126,8 @@ async def unlike_post(
 @router.patch("/{post_id}/inc-comments")
 async def increment_post_comments(
     post_id: str,
+    user: CurrentUser = Depends(get_current_user),
     service: PostService = Depends(get_post_service),
-    # Секретный ключ для внутренних вызовов (опционально)
 ):
     """Увеличить счётчик комментариев поста (внутренний эндпоинт для BFF)"""
     result = await service.increment_comments(post_id)
@@ -142,6 +139,7 @@ async def increment_post_comments(
 @router.patch("/{post_id}/dec-comments")
 async def decrement_post_comments(
     post_id: str,
+    user: CurrentUser = Depends(get_current_user),
     service: PostService = Depends(get_post_service),
 ):
     """Уменьшить счётчик комментариев поста (внутренний эндпоинт для BFF)"""
@@ -149,3 +147,5 @@ async def decrement_post_comments(
     if not result:
         raise HTTPException(404, "Post not found or comments_quantity is 0")
     return result
+
+

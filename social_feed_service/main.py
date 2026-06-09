@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from src.api.routes import posts
+from src.api.routes import posts, feed
 from src.db.init_collections import init_collections
 from src.db.mongo_client import mongodb_client
 
@@ -26,6 +26,7 @@ app = FastAPI(
     },
 )
 app.include_router(posts.router)
+app.include_router(feed.router)
 
 
 @app.get("/")

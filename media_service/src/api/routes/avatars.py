@@ -13,7 +13,6 @@ router = APIRouter(prefix="/avatar", tags=["Avatar"])
 async def upload_avatar(
         user: CurrentUser = Depends(get_current_user),
         file: UploadFile = File(...),
-        replace: bool = Form(True),
         media_service: MediaService = Depends(get_media_service),
         s3_client: S3Client = Depends(get_s3_client),
 ):
@@ -31,12 +30,6 @@ async def upload_avatar(
     for file_bytes, ext, size_name in result:
         path = media_service.get_avatar_path(user_id=user.id, size=size_name)
 
-        if not replace:
-            try:
-                await s3_client.client.head_object(Bucket=path.bucket, Key=path.key)
-                continue
-            except s3_client.client.exceptions.ClientError:
-                pass
 
         await s3_client.client.put_object(
             Bucket=path.bucket,

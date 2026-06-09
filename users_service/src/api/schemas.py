@@ -24,6 +24,11 @@ class UserLogin(BaseSchema):
 
 class Token(BaseSchema):
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+class AccessToken(BaseSchema):
+    access_token: str
     token_type: str = "bearer"
 
 

@@ -1,216 +1,493 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Melo Gateway UI</title>
-  <style>
-    :root { font-family: system-ui, sans-serif; color: #111; background: #f4f4f7; }
-    body { max-width: 960px; margin: 0 auto; padding: 24px; }
-    h1 { margin-bottom: 8px; }
-    section { background: #fff; border-radius: 12px; padding: 16px; margin: 16px 0; box-shadow: 0 2px 8px #0001; }
-    label { display: block; margin: 8px 0 4px; font-size: 14px; }
-    input, select, textarea, button { width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 8px; }
-    button { background: #5b21b6; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
-    button:hover { background: #4c1d95; }
-    pre { background: #111; color: #0f0; padding: 12px; border-radius: 8px; overflow: auto; max-height: 320px; font-size: 12px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .token { word-break: break-all; font-size: 12px; color: #555; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music App - Главная</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        /* Хедер */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            color: #667eea;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-logout:hover {
+            background: #c82333;
+        }
+        
+        .btn-login {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        
+        .btn-login:hover {
+            background: #5a67d8;
+        }
+        
+        /* Контейнер */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Секции */
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .section-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        /* Карточки */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .track-card, .album-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        
+        .track-card:hover, .album-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        
+        .track-cover, .album-cover {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .track-info, .album-info {
+            padding: 16px;
+        }
+        
+        .track-title, .album-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .track-artist, .album-artist {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        
+        .track-stats, .album-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* Плеер */
+        .audio-player {
+            width: 100%;
+            margin-top: 12px;
+        }
+        
+        /* Лоадер */
+        .loader {
+            text-align: center;
+            padding: 60px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Пустое состояние */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 16px;
+            color: #999;
+        }
+        
+        /* Футер */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: #999;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Melo Gateway</h1>
-  <p>BFF на порту 8080 — регистрация, посты, альбомы, лента.</p>
-  <p class="token" id="tokenInfo">Токен: не авторизован</p>
-
-  <section>
-    <h2>Регистрация / Вход</h2>
-    <div class="row">
-      <div>
-        <label>Username</label><input id="regUsername" value="demo_user" />
-        <label>Nickname</label><input id="regNickname" value="Demo" />
-        <label>Email</label><input id="regEmail" type="email" value="demo@example.com" />
-        <label>Password</label><input id="regPassword" type="password" value="secret123" />
-        <button onclick="register()">Зарегистрироваться</button>
-      </div>
-      <div>
-        <label>Email</label><input id="loginEmail" type="email" value="demo@example.com" />
-        <label>Password</label><input id="loginPassword" type="password" value="secret123" />
-        <button onclick="login()">Войти</button>
-        <button onclick="loadMe()">GET /api/auth/me</button>
-      </div>
+    <div class="header">
+        <div class="logo">🎵 Music App</div>
+        <div class="nav-links">
+            <a href="#" onclick="loadFeed()">Главная</a>
+            <a href="/test/post-create">Создать пост</a>
+            <a href="/test/album-create">Создать альбом</a>
+            <a href="/test/feed">Лента</a>
+        </div>
+        <div id="auth-section">
+            <div class="user-info hidden" id="user-info">
+                <span class="user-name" id="user-name"></span>
+                <img class="user-avatar" id="user-avatar" alt="Avatar">
+                <button class="btn-logout" onclick="logout()">Выйти</button>
+            </div>
+            <a href="/test/login" class="btn-login" id="login-btn">Войти</a>
+        </div>
     </div>
-  </section>
-
-  <section>
-    <h2>Создать пост (текст + фото)</h2>
-    <label>Текст</label>
-    <textarea id="postText">Привет из gateway UI!</textarea>
-    <label>Изображения</label>
-    <input id="postImages" type="file" accept="image/*" multiple />
-    <button onclick="createPost()">Создать пост</button>
-    <label>ID поста для просмотра</label>
-    <input id="postId" placeholder="ObjectId поста" />
-    <button onclick="getPost()">Открыть пост (+ автор + комментарии)</button>
-  </section>
-
-  <section>
-    <h2>Создать альбом</h2>
-    <label>Название</label><input id="albumTitle" value="My Single" />
-    <label>Тип</label>
-    <select id="albumType"><option>single</option><option>ep</option><option>album</option><option>mixtape</option></select>
-    <label>Обложка</label><input id="albumCover" type="file" accept="image/*" />
-    <label>Название трека</label><input id="trackTitle" value="Track 1" />
-    <label>Аудио файл</label><input id="trackFile" type="file" accept="audio/*" />
-    <label>BPM (10-1000, необязательно)</label>
-    <input id="trackBpm" type="number" min="10" max="1000" step="0.01" placeholder="например, 120" />
-    <button onclick="createAlbum()">Создать и опубликовать альбом</button>
     
-
-    <label>ID альбома</label><input id="albumId" placeholder="UUID альбома" />
-    <button onclick="getAlbum()">Открыть альбом (+ автор)</button>
-    <label>ID трека</label><input id="trackId" placeholder="UUID трека" />
-    <button onclick="getTrack()">Открыть трек (+ автор + комментарии)</button>
-  </section>
-
-  <section>
-    <h2>Лента постов</h2>
-    <button onclick="loadFeed()">GET /api/feed</button>
-  </section>
-
-  <section>
-    <h2>Ответ API</h2>
-    <pre id="output">{}</pre>
-  </section>
-
-  <script>
-    const API = window.location.origin;
-    let token = localStorage.getItem('access_token') || '';
-
-    function show(data) {
-      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-    }
-    function updateTokenInfo() {
-      document.getElementById('tokenInfo').textContent = token
-        ? 'Токен: ' + token.slice(0, 24) + '...'
-        : 'Токен: не авторизован';
-    }
-    updateTokenInfo();
-
-    async function api(path, options = {}) {
-      const headers = options.headers || {};
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-      const res = await fetch(API + path, { ...options, headers });
-      const text = await res.text();
-      let body;
-      try { body = JSON.parse(text); } catch { body = text; }
-      if (!res.ok) throw { status: res.status, body };
-      return body;
-    }
-
-    async function register() {
-      try {
-        const body = await api('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            username: document.getElementById('regUsername').value,
-            nickname: document.getElementById('regNickname').value,
-            email: document.getElementById('regEmail').value,
-            password: document.getElementById('regPassword').value,
-          }),
+    <div class="container" id="main-container">
+        <div class="loader" id="loader">
+            <div class="loading-spinner"></div>
+            <p>Загрузка рекомендаций...</p>
+        </div>
+        
+        <div id="content" class="hidden">
+            <!-- Треки -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>🎧 Рекомендуемые треки</h2>
+                    <a href="#" class="section-link" onclick="loadMoreTracks()">Все треки →</a>
+                </div>
+                <div id="tracks-grid" class="cards-grid"></div>
+            </div>
+            
+            <!-- Альбомы -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>📀 Рекомендуемые альбомы</h2>
+                    <a href="#" class="section-link" onclick="loadMoreAlbums()">Все альбомы →</a>
+                </div>
+                <div id="albums-grid" class="cards-grid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Music App — слушай музыку, делись впечатлениями</p>
+    </div>
+    
+    <script>
+        let token = null;
+        let currentUser = null;
+        
+        // Получение токена
+        function getToken() {
+            return localStorage.getItem('access_token');
+        }
+        
+        // Выход
+        async function logout() {
+            try {
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (e) {}
+            localStorage.removeItem('access_token');
+            window.location.href = '/test/login';
+        }
+        
+        // Проверка авторизации
+        token = getToken();
+        
+        // Обновление UI авторизации
+        function updateAuthUI(user) {
+            const userInfo = document.getElementById('user-info');
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (user) {
+                userInfo.classList.remove('hidden');
+                loginBtn.classList.add('hidden');
+                document.getElementById('user-name').textContent = user.nickname || 'User';
+                document.getElementById('user-avatar').src = user.avatar_url || '/static/default-avatar.png';
+                currentUser = user;
+            } else {
+                userInfo.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                currentUser = null;
+            }
+        }
+        
+        // Загрузка рекомендаций
+        async function loadRecommendations() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const tracksGrid = document.getElementById('tracks-grid');
+            const albumsGrid = document.getElementById('albums-grid');
+            
+            loader.classList.remove('hidden');
+            content.classList.add('hidden');
+            
+            try {
+                // Загружаем смешанные рекомендации
+                const response = await fetch('/api/v1/music-feed/mixed?tracks_limit=12&albums_limit=12', {
+                    method: 'GET',
+                    headers: token ? {
+                        'Authorization': `Bearer ${token}`
+                    } : {}
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Обновляем UI авторизации
+                    if (data.user && data.user.is_authenticated) {
+                        updateAuthUI(data.user);
+                    } else {
+                        updateAuthUI(null);
+                    }
+                    
+                    // Отображаем треки
+                    renderTracks(data.tracks.items || []);
+                    
+                    // Отображаем альбомы
+                    renderAlbums(data.albums.items || []);
+                    
+                    content.classList.remove('hidden');
+                } else {
+                    console.error('Error:', data);
+                    tracksGrid.innerHTML = '<div class="empty-state">❌ Ошибка загрузки рекомендаций</div>';
+                    albumsGrid.innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                tracksGrid.innerHTML = '<div class="empty-state">❌ Ошибка сети</div>';
+                albumsGrid.innerHTML = '';
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+        
+        // Отображение треков
+        function renderTracks(tracks) {
+            const container = document.getElementById('tracks-grid');
+            
+            if (!tracks || tracks.length === 0) {
+                container.innerHTML = '<div class="empty-state">🎵 Нет рекомендаций треков</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            for (const track of tracks) {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.onclick = () => window.location.href = `/track/${track.track_id}`;
+                
+                // Генерируем обложку (цвет на основе ID или дефолт)
+                const coverUrl = track.cover_url;
+                
+                card.innerHTML = `
+                    <img class="track-cover" src="${coverUrl}" alt="${escapeHtml(track.title)}">
+                    <div class="track-info">
+                        <div class="track-title">${escapeHtml(track.title)}</div>
+                        <div class="track-artist">${escapeHtml(track.author_nickname || 'Автор')}</div>
+                        <div class="track-stats">
+                            <span>❤️ ${track.liked_quantity || 0}</span>
+                            <span>🎧 ${track.listening_quantity || 0}</span>
+                        </div>
+                        ${track.preview_url ? `<audio class="audio-player" controls src="${track.preview_url}"></audio>` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+        
+        // Отображение альбомов
+        function renderAlbums(albums) {
+            const container = document.getElementById('albums-grid');
+            
+            if (!albums || albums.length === 0) {
+                container.innerHTML = '<div class="empty-state">📀 Нет рекомендаций альбомов</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            for (const album of albums) {
+                const card = document.createElement('div');
+                card.className = 'album-card';
+                card.onclick = () => window.location.href = `/album/${album.id}`;
+                
+                const coverUrl = album.cover_url || `https://picsum.photos/seed/${album.id}/300/300`;
+                
+                card.innerHTML = `
+                    <img class="album-cover" src="${coverUrl}" alt="${escapeHtml(album.title)}">
+                    <div class="album-info">
+                        <div class="album-title">${escapeHtml(album.title)}</div>
+                        <div class="album-artist">${escapeHtml(album.author_nickname || 'Автор')}</div>
+                        <div class="album-stats">
+                            <span>❤️ ${album.liked_quantity || 0}</span>
+                            <span>🎧 ${album.listening_quantity || 0}</span>
+                            <span>📀 ${album.tracks_count || 0} треков</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+        
+        // Заглушки для переходов
+        function loadMoreTracks() {
+            window.location.href = '/tracks';
+        }
+        
+        function loadMoreAlbums() {
+            window.location.href = '/albums';
+        }
+        
+        function loadFeed() {
+            window.location.href = '/test/feed';
+        }
+        
+        // Эскейп HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Загрузка страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecommendations();
         });
-        token = body.access_token;
-        localStorage.setItem('access_token', token);
-        updateTokenInfo();
-        show(body);
-      } catch (e) { show(e); }
-    }
-
-    async function login() {
-      try {
-        const body = await api('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: document.getElementById('loginEmail').value,
-            password: document.getElementById('loginPassword').value,
-          }),
-        });
-        token = body.access_token;
-        localStorage.setItem('access_token', token);
-        updateTokenInfo();
-        show(body);
-      } catch (e) { show(e); }
-    }
-
-    async function loadMe() {
-      try { show(await api('/api/auth/me')); } catch (e) { show(e); }
-    }
-
-    async function createPost() {
-      const fd = new FormData();
-      fd.append('text', document.getElementById('postText').value);
-      for (const f of document.getElementById('postImages').files) fd.append('images', f);
-      try {
-        const res = await fetch(API + '/api/posts', {
-          method: 'POST',
-          headers: token ? { Authorization: 'Bearer ' + token } : {},
-          body: fd,
-        });
-        show(await res.json());
-      } catch (e) { show(e); }
-    }
-
-    async function getPost() {
-      const id = document.getElementById('postId').value;
-      try { show(await api('/api/posts/' + id)); } catch (e) { show(e); }
-    }
-
-    async function createAlbum() {
-      const fd = new FormData();
-      fd.append('title', document.getElementById('albumTitle').value);
-      fd.append('album_type', document.getElementById('albumType').value);
-      
-      // 🔥 Получаем BPM (может быть пустым)
-      const bpmValue = document.getElementById('trackBpm').value;
-      const bpm = bpmValue ? parseFloat(bpmValue) : null;
-      
-      fd.append('tracks_json', JSON.stringify([{
-        title: document.getElementById('trackTitle').value,
-        text: '',
-        bpm: bpm,  // 🔥 Добавляем bpm (может быть null)
-        file_index: 0,
-      }]));
-      
-      const cover = document.getElementById('albumCover').files[0];
-      if (cover) fd.append('cover', cover);
-      const track = document.getElementById('trackFile').files[0];
-      if (track) fd.append('track_files', track);
-      
-      try {
-        const res = await fetch(API + '/api/albums', {
-          method: 'POST',
-          headers: token ? { Authorization: 'Bearer ' + token } : {},
-          body: fd,
-        });
-        const data = await res.json();
-        show(data);
-        if (data.album?.id) document.getElementById('albumId').value = data.album.id;
-      } catch (e) { show(e); }
-    }
-
-    async function getAlbum() {
-      try { show(await api('/api/albums/' + document.getElementById('albumId').value)); } catch (e) { show(e); }
-    }
-
-    async function getTrack() {
-      try { show(await api('/api/tracks/' + document.getElementById('trackId').value)); } catch (e) { show(e); }
-    }
-
-    async function loadFeed() {
-      try { show(await api('/api/feed')); } catch (e) { show(e); }
-    }
-  </script>
+    </script>
 </body>
 </html>

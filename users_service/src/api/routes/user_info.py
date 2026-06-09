@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, or_, func, desc, case
+from typing import Optional, List
 import uuid
 
-from src.db.postgres_engine import get_db, init_db
-from src.services.auth_service import AuthService
-from src.api.dependencies import get_current_user, get_redis_client
-from src.api.schemas import UserCreate, UserLogin, UserResponse, Token, UserList
+from src.db.postgres_engine import get_db
+from src.api.dependencies import get_current_user
+from src.api.schemas import UserResponse
 from src.models.users_models import Users, Followers, Friends, UserStatuses
 
 router = APIRouter(
@@ -131,4 +130,92 @@ async def get_friends(
                 "avatar_url": f.avatar_url
             } for f in friends_list
         ]
+    }
+
+
+@router.get("/search")
+async def search_users(
+        query: str = Query(..., min_length=1, max_length=100, description="Поиск по никнейму или имени пользователя"),
+        sort_by: str = Query("relevance", pattern="^(relevance|follower_quantity|created_at)$"),
+        sort_order: str = Query("desc", pattern="^(asc|desc)$"),
+        skip: int = Query(0, ge=0),
+        limit: int = Query(20, ge=1, le=100),
+        db: AsyncSession = Depends(get_db)
+):
+    """
+    Поиск пользователей по nickname или username.
+    """
+
+    stmt = select(Users)
+    search_pattern = f"%{query}%"
+
+    # Ищем по nickname и username (регистронезависимо)
+    stmt = stmt.where(
+        or_(
+            Users.nickname.ilike(search_pattern),
+            Users.username.ilike(search_pattern)
+        )
+    )
+
+    # Сортировка по релевантности
+    if sort_by == "relevance":
+        stmt = stmt.order_by(
+            case(
+                # Сначала точное совпадение
+                (Users.nickname.ilike(query), 1),
+                (Users.username.ilike(query), 2),
+                # Начинающиеся с запроса
+                (Users.nickname.ilike(f"{query}%"), 3),
+                (Users.username.ilike(f"{query}%"), 4),
+                # Затем частичное совпадение
+                else_=5
+            ).asc(),
+            # Затем по количеству подписчиков
+            desc(Users.follower_quantity)
+        )
+    elif sort_by == "follower_quantity":
+        if sort_order == "desc":
+            stmt = stmt.order_by(desc(Users.follower_quantity))
+        else:
+            stmt = stmt.order_by(Users.follower_quantity)
+    elif sort_by == "created_at":
+        if sort_order == "desc":
+            stmt = stmt.order_by(desc(Users.created_at))
+        else:
+            stmt = stmt.order_by(Users.created_at)
+
+    stmt = stmt.offset(skip).limit(limit)
+
+    result = await db.execute(stmt)
+    users = result.scalars().all()
+
+    # Формируем ответ
+    response = []
+    for user in users:
+        response.append({
+            "id": str(user.id),
+            "nickname": user.nickname,
+            "username": user.username,
+            "avatar_url": user.avatar_url,
+            "bio": user.bio,
+            "follower_quantity": user.follower_quantity,
+            "following_quantity": user.following_quantity,
+            "friends_quantity": user.friends_quantity
+        })
+
+    # Подсчёт общего количества
+    count_stmt = select(func.count()).select_from(Users).where(
+        or_(
+            Users.nickname.ilike(search_pattern),
+            Users.username.ilike(search_pattern)
+        )
+    )
+    total = await db.execute(count_stmt)
+
+    return {
+        "items": response,
+        "total": total.scalar_one(),
+        "skip": skip,
+        "limit": limit,
+        "search_query": query
     }

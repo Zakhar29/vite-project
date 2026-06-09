@@ -32,6 +32,23 @@ class SocialClient(ServiceClient):
             params["created_before"] = created_before
         return await self._request("GET", "/posts", params=params)
 
+    async def get_recommended_posts(
+            self,
+            following_ids: Optional[list[str]] = None,
+            skip: int = 0,
+            limit: int = 20
+    ) -> dict:
+        """
+        Получение рекомендаций постов.
+        following_ids — список ID авторов, на которых подписан пользователь.
+        """
+        params = {"skip": skip, "limit": limit}
+
+        if following_ids and len(following_ids) > 0:
+            params["following_ids"] = ",".join(following_ids)
+
+        return await self._request("GET", "/feed/recommendations", params=params)
+
     async def get_post(self, post_id: str) -> dict:
         """Получить пост"""
         return await self._request("GET", f"/posts/{post_id}")
@@ -58,16 +75,8 @@ class SocialClient(ServiceClient):
         """Убрать лайк"""
         return await self._request("DELETE", f"/posts/{post_id}/like", token=token)
 
-    # ========== Внутренние счётчики ==========
+    async def inc_post_comments(self, post_id: str, token: str) -> dict:
+        return await self._request("PATCH", f"/posts/{post_id}/inc-comments", token=token)
 
-    async def inc_post_likes(self, post_id: str) -> dict:
-        return await self._request("PATCH", f"/posts/{post_id}/inc-likes")
-
-    async def dec_post_likes(self, post_id: str) -> dict:
-        return await self._request("PATCH", f"/posts/{post_id}/dec-likes")
-
-    async def inc_post_comments(self, post_id: str) -> dict:
-        return await self._request("PATCH", f"/posts/{post_id}/inc-comments")
-
-    async def dec_post_comments(self, post_id: str) -> dict:
-        return await self._request("PATCH", f"/posts/{post_id}/dec-comments")
+    async def dec_post_comments(self, post_id: str, token: str) -> dict:
+        return await self._request("PATCH", f"/posts/{post_id}/dec-comments", token=token)

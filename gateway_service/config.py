@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings:
     # Сервисы
-    USERS_SERVICE_URL = os.getenv("USERS_SERVICE_URL", "http://localhost:8001")
+    USERS_SERVICE_URL = os.getenv("USERS_SERVICE_URL", "http://localhost:8000")
     MEDIA_SERVICE_URL = os.getenv("MEDIA_SERVICE_URL", "http://localhost:8002")
     MUSIC_CATALOG_URL = os.getenv("CATALOG_SERVICE_URL", "http://localhost:8003")
     SOCIAL_FEED_URL = os.getenv("SOCIAL_SERVICE_URL", "http://localhost:8004")
@@ -15,10 +15,10 @@ class Settings:
     KAFKA_CLIENT_ID = "my-producer-id"
     # Таймауты
     REQUEST_TIMEOUT = 30.0
-
+    SECRET_KEY: str = "your-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
     # Токены
-    SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
-    ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
     ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 

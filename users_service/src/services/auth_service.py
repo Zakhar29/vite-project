@@ -166,16 +166,9 @@ class AuthService:
         # Создаем новые токены
         token_data = {"user_id": str(user.id), "email": user.email}
         access_token = create_access_token(token_data)
-        new_refresh_token = create_refresh_token(token_data)
 
-        # Обновляем refresh token в Redis
-        self.redis.setex(
-            f"refresh_token:{user.id}",
-            settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
-            new_refresh_token
-        )
 
-        return {"access_token": access_token, "refresh_token": new_refresh_token}
+        return {"access_token": access_token}
 
     async def logout(self, user_id: str):
         """Выход пользователя"""

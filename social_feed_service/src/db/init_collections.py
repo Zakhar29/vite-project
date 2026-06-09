@@ -22,7 +22,7 @@ POSTS_VALIDATOR = {
                     },
                     "media": {
                         "bsonType": "array",
-                        "maxItems": 11,
+                        "maxItems": 6,
                         "items": {
                             "bsonType": "object",
                             "required": ["type", "url"],

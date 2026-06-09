@@ -50,6 +50,26 @@ class UsersClient(ServiceClient):
         """Статус пользователя"""
         return await self._request("GET", f"/users/get_user_status/{user_id}")
 
+    async def search_users(
+            self,
+            query: str,
+            skip: int = 0,
+            limit: int = 20,
+            sort_by: str = "relevance",
+            sort_order: str = "desc"
+    ) -> dict:
+        """
+        Поиск пользователей по никнейму или имени пользователя.
+        """
+        params = {
+            "query": query,
+            "skip": skip,
+            "limit": limit,
+            "sort_by": sort_by,
+            "sort_order": sort_order
+        }
+        return await self._request("GET", "/users/search", params=params)
+
     # ========== Подписки и друзья ==========
 
     async def follow(self, user_id: str, token: str) -> dict:
@@ -76,21 +96,21 @@ class UsersClient(ServiceClient):
 
     async def update_avatar(self, avatar_url: str, token: str) -> dict:
         """Обновить аватар"""
-        return await self._request("POST", "/settings/avatar", token=token, json={"avatar_url": avatar_url})
+        return await self._request("POST", "/settings/avatar", token=token, params={"avatar_url": avatar_url})
 
     async def update_bio(self, bio: str, token: str) -> dict:
         """Обновить биографию"""
-        return await self._request("POST", "/settings/bio", token=token, json={"bio": bio})
+        return await self._request("POST", "/settings/bio", token=token, params={"bio": bio})
 
     async def rename_nickname(self, nickname: str, token: str) -> dict:
         """Изменить никнейм"""
-        return await self._request("POST", "/settings/rename_nickname", token=token, json={"nickname": nickname})
+        return await self._request("POST", "/settings/rename_nickname", token=token, params={"nickname": nickname})
 
     async def rename_username(self, username: str, token: str) -> dict:
         """Изменить username"""
-        return await self._request("POST", "/settings/rename_username", token=token, json={"username": username})
+        return await self._request("POST", "/settings/rename_username", token=token, params={"username": username})
 
     async def change_password(self, password: str, new_password: str, token: str) -> dict:
         """Сменить пароль"""
         payload = {"password": password, "new_password": new_password}
-        return await self._request("POST", "/settings/change_password", token=token, json=payload)
+        return await self._request("POST", "/settings/change_password", token=token, params=payload)

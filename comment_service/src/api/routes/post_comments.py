@@ -44,7 +44,7 @@ async def list_post_comments(
 
 @router.post(
     "/{post_id}/comments",
-    response_model=PostCommentResponse,
+    response_model=PostCommentCreate,
     status_code=status.HTTP_201_CREATED,
     summary="Комментарий к посту",
 )

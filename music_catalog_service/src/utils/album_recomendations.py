@@ -180,7 +180,7 @@ async def get_user_album_genres(db: AsyncSession, user_id: uuid.UUID) -> List[in
 
 
 async def cold_start_album_recommendations(limit: int, db: AsyncSession) -> List[dict]:
-    """Рекомендации альбомов для новых пользователей"""
+    """Рекомендации альбомов для новых пользователей (без дубликатов)"""
 
     public_status_id = await get_public_status_id(db)
 
@@ -188,48 +188,66 @@ async def cold_start_album_recommendations(limit: int, db: AsyncSession) -> List
     new_limit = int(limit * 0.3)  # 30% новинки
     random_limit = limit - popular_limit - new_limit  # 10% случайные
 
-    # Популярные альбомы
+    recommendations = []
+    seen_ids = set()
+
+    # 1. Популярные альбомы (берём с запасом)
     popular_stmt = (
         select(Albums)
         .where(Albums.status == public_status_id)
         .order_by(desc(Albums.listening_quantity))
-        .limit(popular_limit)
+        .limit(popular_limit * 2)  # запас на случай дубликатов
     )
-
-    # Новинки
-    new_stmt = (
-        select(Albums)
-        .where(Albums.status == public_status_id)
-        .order_by(desc(Albums.published_at))
-        .limit(new_limit)
-    )
-
-    # Случайные альбомы
-    random_stmt = (
-        select(Albums)
-        .where(Albums.status == public_status_id)
-        .order_by(func.random())
-        .limit(random_limit)
-    )
-
     popular_result = await db.execute(popular_stmt)
-    new_result = await db.execute(new_stmt)
-    random_result = await db.execute(random_stmt)
-
-    recommendations = []
 
     for album in popular_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
-    for album in new_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
-    for album in random_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
+        if album.id not in seen_ids:
+            recommendations.append(await enrich_album_response(album, db))
+            seen_ids.add(album.id)
+            if len(recommendations) >= popular_limit:
+                break
+
+    # 2. Новые альбомы (исключая уже выбранные)
+    if len(recommendations) < limit:
+        new_stmt = (
+            select(Albums)
+            .where(Albums.status == public_status_id)
+            .where(Albums.id.not_in(seen_ids))  # исключаем уже выбранные
+            .order_by(desc(Albums.published_at))
+            .limit(new_limit * 2)
+        )
+        new_result = await db.execute(new_stmt)
+
+        for album in new_result.scalars().all():
+            if album.id not in seen_ids:
+                recommendations.append(await enrich_album_response(album, db))
+                seen_ids.add(album.id)
+                if len(recommendations) >= limit:
+                    break
+
+    # 3. Случайные альбомы (исключая уже выбранные)
+    if len(recommendations) < limit:
+        random_stmt = (
+            select(Albums)
+            .where(Albums.status == public_status_id)
+            .where(Albums.id.not_in(seen_ids))  # исключаем уже выбранные
+            .order_by(func.random())
+            .limit(random_limit * 3)
+        )
+        random_result = await db.execute(random_stmt)
+
+        for album in random_result.scalars().all():
+            if album.id not in seen_ids:
+                recommendations.append(await enrich_album_response(album, db))
+                seen_ids.add(album.id)
+                if len(recommendations) >= limit:
+                    break
 
     return recommendations[:limit]
 
 
 async def global_album_recommendations(limit: int, db: AsyncSession) -> dict:
-    """Глобальные рекомендации альбомов (популярное + новое + случайное)"""
+    """Глобальные рекомендации альбомов (популярное + новое + случайное) без дубликатов"""
 
     public_status_id = await get_public_status_id(db)
 
@@ -237,42 +255,69 @@ async def global_album_recommendations(limit: int, db: AsyncSession) -> dict:
     new_limit = int(limit * settings.RECOMMENDATIONS_NEW_FACTOR)
     random_limit = limit - popular_limit - new_limit
 
-    # Популярные альбомы
-    popular_stmt = (
-        select(Albums)
-        .where(Albums.status == public_status_id)
-        .order_by(desc(Albums.listening_quantity))
-        .limit(popular_limit)
-    )
-
-    # Новые альбомы
-    new_stmt = (
-        select(Albums)
-        .where(Albums.status == public_status_id)
-        .order_by(desc(Albums.published_at))
-        .limit(new_limit)
-    )
-
-    # Случайные альбомы
-    random_stmt = (
-        select(Albums)
-        .where(Albums.status == public_status_id)
-        .order_by(func.random())
-        .limit(random_limit)
-    )
-
-    popular_result = await db.execute(popular_stmt)
-    new_result = await db.execute(new_stmt)
-    random_result = await db.execute(random_stmt)
-
     recommendations = []
+    seen_ids = set()
 
-    for album in popular_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
-    for album in new_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
-    for album in random_result.scalars().all():
-        recommendations.append(await enrich_album_response(album, db))
+    # 1. Популярные альбомы
+    if popular_limit > 0:
+        popular_stmt = (
+            select(Albums)
+            .where(Albums.status == public_status_id)
+            .order_by(desc(Albums.listening_quantity))
+            .limit(popular_limit * 2)
+        )
+        popular_result = await db.execute(popular_stmt)
+
+        for album in popular_result.scalars().all():
+            if album.id not in seen_ids:
+                recommendations.append(await enrich_album_response(album, db))
+                seen_ids.add(album.id)
+                if len(recommendations) >= limit:
+                    return {
+                        "items": recommendations[:limit],
+                        "total": len(recommendations[:limit]),
+                        "type": "global"
+                    }
+
+    # 2. Новые альбомы
+    if new_limit > 0 and len(recommendations) < limit:
+        new_stmt = (
+            select(Albums)
+            .where(Albums.status == public_status_id)
+            .where(Albums.id.not_in(seen_ids))
+            .order_by(desc(Albums.published_at))
+            .limit(new_limit * 2)
+        )
+        new_result = await db.execute(new_stmt)
+
+        for album in new_result.scalars().all():
+            if album.id not in seen_ids:
+                recommendations.append(await enrich_album_response(album, db))
+                seen_ids.add(album.id)
+                if len(recommendations) >= limit:
+                    return {
+                        "items": recommendations[:limit],
+                        "total": len(recommendations[:limit]),
+                        "type": "global"
+                    }
+
+    # 3. Случайные альбомы
+    if random_limit > 0 and len(recommendations) < limit:
+        random_stmt = (
+            select(Albums)
+            .where(Albums.status == public_status_id)
+            .where(Albums.id.not_in(seen_ids))
+            .order_by(func.random())
+            .limit(random_limit * 3)
+        )
+        random_result = await db.execute(random_stmt)
+
+        for album in random_result.scalars().all():
+            if album.id not in seen_ids:
+                recommendations.append(await enrich_album_response(album, db))
+                seen_ids.add(album.id)
+                if len(recommendations) >= limit:
+                    break
 
     return {
         "items": recommendations[:limit],

@@ -113,21 +113,48 @@ async def delete_post_media(
         media_keys: list[str] = Query(...),
         s3_client: S3Client = Depends(get_s3_client),
 ):
-    """Удаление медиа из поста по ключам"""
-    # Жестко определяем bucket для постов
-    bucket = "posts"  # или media_service.get_bucket_by_type("post")
-    
+    """
+    Удаление медиа из поста.
+    media_keys: ["media-images/234/file.avif", "media-videos/234/video.mp4"]
+    """
+
     deleted = []
-    for key in media_keys:
-        # Проверка, что ключ относится к этому post_id
-        if not key.startswith(f"posts/{post_id}/"):
-            deleted.append({"key": key, "success": False, "error": "Key does not belong to this post"})
+    for full_key in media_keys:
+        # Разбираем full_key на bucket и clean_key
+        if full_key.startswith("media-images/"):
+            bucket = "media-images"
+            clean_key = full_key.replace("media-images/", "")
+        elif full_key.startswith("media-videos/"):
+            bucket = "media-videos"
+            clean_key = full_key.replace("media-videos/", "")
+        else:
+            deleted.append({
+                "key": full_key,
+                "success": False,
+                "error": f"Unknown bucket in key: {full_key}"
+            })
             continue
-            
+
+        # Проверяем, что clean_key принадлежит этому посту
+        if not clean_key.startswith(f"{post_id}/"):
+            deleted.append({
+                "key": full_key,
+                "success": False,
+                "error": f"Key does not belong to post {post_id}"
+            })
+            continue
+
         try:
-            await s3_client.client.delete_object(Bucket=bucket, Key=key)
-            deleted.append({"key": key, "success": True})
+            await s3_client.client.delete_object(Bucket=bucket, Key=clean_key)
+            deleted.append({
+                "key": full_key,
+                "success": True
+            })
         except Exception as e:
-            deleted.append({"key": key, "success": False, "error": str(e)})
-    
+            deleted.append({
+                "key": full_key,
+                "success": False,
+                "error": str(e)
+            })
+
     return {"deleted": deleted}

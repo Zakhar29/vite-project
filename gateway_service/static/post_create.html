@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание поста</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: white;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .card-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input {
+            padding: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .preview-section {
+            margin-top: 12px;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .remove-media {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-preview {
+            max-width: 200px;
+            border-radius: 8px;
+        }
+
+        .btn-submit {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
+        }
+
+        .btn-submit:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .response {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response.success {
+            background: #1e3a2e;
+            color: #4ade80;
+        }
+
+        .response.error {
+            background: #3a1e1e;
+            color: #f87171;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            color: white;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <h1>✏️ Создание поста</h1>
+            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>📝 Новый пост</h2>
+                <span class="badge">Максимум 5 фото + 1 видео</span>
+            </div>
+
+            <div class="form-group">
+                <label>Текст поста</label>
+                <textarea id="post-text" rows="4" placeholder="Что у вас нового?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Изображения (до 5 шт)</label>
+                <input type="file" id="images-input" multiple accept="image/*" class="file-input">
+                <div id="image-preview" class="preview-section">
+                    <div class="preview-title">Предпросмотр изображений:</div>
+                    <div class="image-preview" id="image-preview-list"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Видео (1 шт)</label>
+                <input type="file" id="video-input" accept="video/*" class="file-input">
+                <div id="video-preview" class="preview-section">
+                    <div class="preview-title">Предпросмотр видео:</div>
+                    <div id="video-preview-list"></div>
+                </div>
+            </div>
+
+            <button class="btn-submit" id="submit-btn" onclick="createPost()">🚀 Опубликовать</button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Результат</h2>
+                <span id="status-badge"></span>
+            </div>
+            <div id="response" class="response">Ожидание действия...</div>
+        </div>
+    </div>
+
+    <script>
+        let selectedImages = [];
+        let selectedVideo = null;
+
+        // Получаем токен
+        function getToken() {
+            return localStorage.getItem('access_token');
+        }
+
+        // Проверка авторизации
+        const token = getToken();
+        if (!token) {
+            window.location.href = '/test/login';
+        }
+
+        // Выход
+        async function logout() {
+            try {
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (e) {}
+            localStorage.removeItem('access_token');
+            window.location.href = '/test/login';
+        }
+
+        // Превью изображений
+        document.getElementById('images-input').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+
+            if (files.length > 5) {
+                alert('Максимум 5 изображений!');
+                this.value = '';
+                return;
+            }
+
+            selectedImages = files;
+            const previewContainer = document.getElementById('image-preview-list');
+            previewContainer.innerHTML = '';
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button class="remove-media" onclick="removeImage(${index})">×</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+
+            const input = document.getElementById('images-input');
+            const dt = new DataTransfer();
+            selectedImages.forEach(file => dt.items.add(file));
+            input.files = dt.files;
+
+            // Обновить событие
+            const event = new Event('change', { bubbles: true });
+            input.dispatchEvent(event);
+        }
+
+        // Превью видео
+        document.getElementById('video-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+
+            if (file) {
+                selectedVideo = file;
+                const previewContainer = document.getElementById('video-preview-list');
+                previewContainer.innerHTML = '';
+
+                const video = document.createElement('video');
+                video.src = URL.createObjectURL(file);
+                video.controls = true;
+                video.className = 'video-preview';
+                video.width = 200;
+                previewContainer.appendChild(video);
+            } else {
+                selectedVideo = null;
+                document.getElementById('video-preview-list').innerHTML = '';
+            }
+        });
+
+        // Создание поста
+        async function createPost() {
+            const text = document.getElementById('post-text').value;
+            const submitBtn = document.getElementById('submit-btn');
+            const responseDiv = document.getElementById('response');
+            const statusBadge = document.getElementById('status-badge');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Отправка... <span class="loading"></span>';
+
+            const formData = new FormData();
+            formData.append('text', text);
+
+            // Добавляем изображения
+            for (let i = 0; i < selectedImages.length; i++) {
+                formData.append('images', selectedImages[i]);
+            }
+
+            // Добавляем видео
+            if (selectedVideo) {
+                formData.append('video', selectedVideo);
+            }
+
+            responseDiv.innerHTML = 'Отправка запроса...';
+            responseDiv.className = 'response';
+            statusBadge.innerHTML = '';
+
+            try {
+                const response = await fetch('/post/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    responseDiv.innerHTML = JSON.stringify(result, null, 2);
+                    responseDiv.className = 'response success';
+                    statusBadge.innerHTML = '<span style="color: #4ade80;">✅ Успешно</span>';
+
+                    // Очистка формы
+                    document.getElementById('post-text').value = '';
+                    document.getElementById('images-input').value = '';
+                    document.getElementById('video-input').value = '';
+                    document.getElementById('image-preview-list').innerHTML = '';
+                    document.getElementById('video-preview-list').innerHTML = '';
+                    selectedImages = [];
+                    selectedVideo = null;
+                } else {
+                    responseDiv.innerHTML = JSON.stringify(result, null, 2);
+                    responseDiv.className = 'response error';
+                    statusBadge.innerHTML = '<span style="color: #f87171;">❌ Ошибка</span>';
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+                responseDiv.className = 'response error';
+                statusBadge.innerHTML = '<span style="color: #f87171;">❌ Ошибка сети</span>';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🚀 Опубликовать';
+            }
+        }
+    </script>
+</body>
+</html>

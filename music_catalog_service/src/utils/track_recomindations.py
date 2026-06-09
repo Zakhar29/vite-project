@@ -9,11 +9,39 @@ from src.models.tracks_models import (
     Tracks, TracksStatuses, Genres, TrackGenres, TrackFeats,
     LikedTracks, ListeningTracks, GenreParents
 )
+from src.models.albums_models import (
+    Albums, AlbumTracks
+)
 from config import settings
 
 
+async def get_popular_genres(db: AsyncSession, limit: int = 5) -> List[int]:
+    """Получение самых популярных жанров среди треков"""
+
+    public_status_id = await get_public_track_status_id(db)
+
+    popular_genres_stmt = (
+        select(TrackGenres.genre_id, func.count().label("count"))
+        .join(Tracks, Tracks.id == TrackGenres.track_id)
+        .where(Tracks.status == public_status_id)
+        .group_by(TrackGenres.genre_id)
+        .order_by(desc("count"))
+        .limit(limit)
+    )
+
+    result = await db.execute(popular_genres_stmt)
+    return [row[0] for row in result.all()]
+
 
 # ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+async def get_public_track_status_id(db: AsyncSession) -> int:
+    """Получение ID статуса 'public' для треков"""
+    result = await db.execute(
+        select(TracksStatuses.id).where(TracksStatuses.title == "public")
+    )
+    status_id = result.scalar_one_or_none()
+    return status_id or 2
+
 
 async def get_related_genres(
         db: AsyncSession,
@@ -60,6 +88,12 @@ async def enrich_track_response(
         track, db: AsyncSession
 ) -> dict:
     """Обогащает ответ трека жанрами и фитами"""
+    album_select = await db.execute(
+        select(Albums)
+        .join(AlbumTracks, AlbumTracks.album_id == Albums.id)
+        .where(AlbumTracks.track_id == track.id)
+    )
+    album = album_select.scalar_one_or_none()
 
     # Жанры
     genres_result = await db.execute(
@@ -78,6 +112,8 @@ async def enrich_track_response(
     return {
         "track_id": str(track.id),
         "title": track.title,
+        "album_id": str(album.id),
+        "cover_url": album.cover_url,
         "author_id": str(track.author_id),
         "feats": feats,
         "track_url": track.track_url,
@@ -119,57 +155,78 @@ async def check_user_activity(user_id: uuid.UUID, db: AsyncSession) -> bool:
     return False
 
 
-async def global_track_recommendations(
-        limit: int, db: AsyncSession
-) -> dict:
-    """Глобальные рекомендации (популярное, новое, случайное)"""
+async def global_track_recommendations(limit: int, db: AsyncSession) -> dict:
+    """Глобальные рекомендации треков (популярное, новое, случайное) без дубликатов"""
 
     popular_limit = int(limit * settings.RECOMMENDATIONS_POPULAR_FACTOR)
     new_limit = int(limit * settings.RECOMMENDATIONS_NEW_FACTOR)
     random_limit = limit - popular_limit - new_limit
 
-    # Популярные треки
-    popular_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(desc(Tracks.listening_quantity))
-        .limit(popular_limit)
-    )
-
-    # Новые треки
-    new_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(desc(Tracks.published_at))
-        .limit(new_limit)
-    )
-
-    # Случайные треки
-    random_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(func.random())
-        .limit(random_limit)
-    )
-
-    popular_result = await db.execute(popular_stmt)
-    new_result = await db.execute(new_stmt)
-    random_result = await db.execute(random_stmt)
-
     recommendations = []
+    seen_ids = set()
 
-    for track in popular_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
-    for track in new_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
-    for track in random_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
+    public_status_id = await get_public_track_status_id(db)
+
+    # 1. Популярные треки
+    if popular_limit > 0:
+        popular_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .order_by(desc(Tracks.listening_quantity))
+            .limit(popular_limit * 3)  # Увеличил запас
+        )
+        popular_result = await db.execute(popular_stmt)
+
+        for track in popular_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    return {
+                        "items": recommendations[:limit],
+                        "total": len(recommendations[:limit]),
+                        "type": "global"
+                    }
+
+    # 2. Новые треки
+    if new_limit > 0 and len(recommendations) < limit:
+        new_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .where(Tracks.id.not_in([uuid.UUID(uid) for uid in seen_ids] if seen_ids else []))
+            .order_by(desc(Tracks.published_at))
+            .limit(new_limit * 3)
+        )
+        new_result = await db.execute(new_stmt)
+
+        for track in new_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    return {
+                        "items": recommendations[:limit],
+                        "total": len(recommendations[:limit]),
+                        "type": "global"
+                    }
+
+    # 3. Случайные треки
+    if random_limit > 0 and len(recommendations) < limit:
+        random_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .where(Tracks.id.not_in([uuid.UUID(uid) for uid in seen_ids] if seen_ids else []))
+            .order_by(func.random())
+            .limit(random_limit * 5)
+        )
+        random_result = await db.execute(random_stmt)
+
+        for track in random_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    break
 
     return {
         "items": recommendations[:limit],
@@ -179,59 +236,72 @@ async def global_track_recommendations(
 
 
 async def cold_start_recommendations(limit: int, db: AsyncSession) -> List[dict]:
-    """Рекомендации для новых пользователей (холодный старт)"""
-
-    from src.models.tracks_models import LikedTracks, ListeningTracks
-
-    # Стратегия: популярные треки + новинки + случайные
+    """Рекомендации для новых пользователей (холодный старт) без дубликатов"""
 
     popular_limit = int(limit * 0.6)  # 60% популярные
-    new_limit = int(limit * 0.3)  # 30% новинки
+    new_limit = int(limit * 0.3)      # 30% новинки
     random_limit = limit - popular_limit - new_limit  # 10% случайные
-    # Популярные треки (по прослушиваниям)
-    popular_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(desc(Tracks.listening_quantity))
-        .limit(popular_limit)
-    )
-
-    # Новинки
-    new_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(desc(Tracks.published_at))
-        .limit(new_limit)
-    )
-
-    # Случайные треки (для разнообразия)
-    random_stmt = (
-        select(Tracks)
-        .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-        .order_by(func.random())
-        .limit(random_limit)
-    )
-
-    popular_result = await db.execute(popular_stmt)
-    new_result = await db.execute(new_stmt)
-    random_result = await db.execute(random_stmt)
 
     recommendations = []
+    seen_ids = set()
 
-    for track in popular_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
-    for track in new_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
-    for track in random_result.scalars().all():
-        recommendations.append(await enrich_track_response(track, db))
+    public_status_id = await get_public_track_status_id(db)
+
+    # 1. Популярные треки
+    if popular_limit > 0:
+        popular_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .order_by(desc(Tracks.listening_quantity))
+            .limit(popular_limit * 3)
+        )
+        popular_result = await db.execute(popular_stmt)
+
+        for track in popular_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    return recommendations[:limit]
+
+    # 2. Новые треки
+    if new_limit > 0 and len(recommendations) < limit:
+        new_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .where(Tracks.id.not_in([uuid.UUID(uid) for uid in seen_ids] if seen_ids else []))
+            .order_by(desc(Tracks.published_at))
+            .limit(new_limit * 3)
+        )
+        new_result = await db.execute(new_stmt)
+
+        for track in new_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    return recommendations[:limit]
+
+    # 3. Случайные треки
+    if random_limit > 0 and len(recommendations) < limit:
+        random_stmt = (
+            select(Tracks)
+            .where(Tracks.status == public_status_id)
+            .where(Tracks.id.not_in([uuid.UUID(uid) for uid in seen_ids] if seen_ids else []))
+            .order_by(func.random())
+            .limit(random_limit * 5)
+        )
+        random_result = await db.execute(random_stmt)
+
+        for track in random_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    break
 
     return recommendations[:limit]
+
 
 async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db: AsyncSession) -> dict:
     """Персонализированные рекомендации на основе истории пользователя"""
@@ -240,7 +310,6 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
     has_activity = await check_user_activity(user_id, db)
 
     if not has_activity:
-        # Холодный старт: рекомендуем популярные треки
         cold_start_recs = await cold_start_recommendations(limit, db)
         return {
             "items": cold_start_recs,
@@ -249,7 +318,7 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
             "message": "New user. Showing popular tracks to get you started."
         }
 
-    # 2. Получаем жанры пользователя (существующая логика)
+    # 2. Получаем жанры пользователя
     genre_stmt = (
         select(TrackGenres.genre_id)
         .join(Tracks, Tracks.id == TrackGenres.track_id)
@@ -267,13 +336,11 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
     genre_result = await db.execute(genre_stmt)
     preferred_genres = [g for g in genre_result.scalars().all()]
 
-    # Если жанров нет (пользователь что-то слушал, но жанры не определились)
     if not preferred_genres:
         popular_genres = await get_popular_genres(db)
         expanded_genres = set(popular_genres)
         preferred_genres = popular_genres
     else:
-        # Расширяем жанры через GenreParents
         expanded_genres = await get_related_genres(db, preferred_genres)
 
     # 3. Получаем авторов пользователя
@@ -293,18 +360,25 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
     author_result = await db.execute(author_stmt)
     preferred_authors = [a for a in author_result.scalars().all()]
 
-    # 4. Строим рекомендательный запрос
-    stmt = select(Tracks).where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-
-    # Исключаем уже прослушанные/лайкнутые треки
+    # 4. Исключаем уже прослушанные/лайкнутые треки
     listened_tracks = select(ListeningTracks.track_id).where(ListeningTracks.user_id == user_id)
     liked_tracks = select(LikedTracks.track_id).where(LikedTracks.user_id == user_id)
-    stmt = stmt.where(~Tracks.id.in_(listened_tracks.union(liked_tracks)))
+    excluded_ids_subq = listened_tracks.union(liked_tracks)
 
-    # Приоритет: расширенные жанры или авторы
+    recommendations = []
+    seen_ids = set()
+
+    public_status_id = await get_public_track_status_id(db)
+
+    # 5. Персонализированный запрос
+    stmt = (
+        select(Tracks)
+        .where(Tracks.status == public_status_id)
+        .where(~Tracks.id.in_(excluded_ids_subq))
+    )
+
     conditions = []
+
     if expanded_genres:
         stmt = stmt.join(TrackGenres).where(TrackGenres.genre_id.in_(list(expanded_genres)))
         conditions.append("genres")
@@ -312,27 +386,43 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
         stmt = stmt.where(Tracks.author_id.in_(preferred_authors))
         conditions.append("authors")
 
-    stmt = stmt.order_by(desc(Tracks.listening_quantity)).limit(limit)
+    stmt = stmt.order_by(desc(Tracks.listening_quantity)).limit(limit * 2)
 
     result = await db.execute(stmt)
     tracks = result.scalars().all()
 
-    # 5. Если рекомендаций мало, добиваем популярными
-    if len(tracks) < limit:
-        popular_limit = limit - len(tracks)
+    # Добавляем уникальные треки
+    for track in tracks:
+        if str(track.id) not in seen_ids:
+            recommendations.append(await enrich_track_response(track, db))
+            seen_ids.add(str(track.id))
+            if len(recommendations) >= limit:
+                break
+
+    # 6. Если рекомендаций мало, добиваем популярными (исключая уже добавленные)
+    if len(recommendations) < limit:
+        needed = limit - len(recommendations)
         popular_stmt = (
             select(Tracks)
-            .where(Tracks.status.in_(
-        select(TracksStatuses.id).where(TracksStatuses.title == "public")
-    ))
-            .where(~Tracks.id.in_(listened_tracks.union(liked_tracks)))
+            .where(Tracks.status == public_status_id)
+            .where(~Tracks.id.in_(excluded_ids_subq))
+            .where(Tracks.id.not_in([uuid.UUID(uid) for uid in seen_ids] if seen_ids else []))
             .order_by(desc(Tracks.listening_quantity))
-            .limit(popular_limit)
+            .limit(needed * 2)
         )
         popular_result = await db.execute(popular_stmt)
-        tracks.extend(popular_result.scalars().all())
 
-    # 6. Формируем ответ
+        for track in popular_result.scalars().all():
+            if str(track.id) not in seen_ids:
+                recommendations.append(await enrich_track_response(track, db))
+                seen_ids.add(str(track.id))
+                if len(recommendations) >= limit:
+                    break
+
+        if len(recommendations) < limit:
+            conditions.append("popular_fallback")
+
+    # 7. Формируем ответ
     genre_names = {}
     if expanded_genres:
         genres_names_result = await db.execute(
@@ -341,18 +431,13 @@ async def personalized_track_recommendations(user_id: uuid.UUID, limit: int, db:
         for g in genres_names_result.all():
             genre_names[g.id] = g.title
 
-    response = []
-    for track in tracks:
-        response.append(await enrich_track_response(track, db))
-
     return {
-        "items": response[:limit],
-        "total": len(response[:limit]),
+        "items": recommendations[:limit],
+        "total": len(recommendations[:limit]),
         "type": "personalized",
         "preferred_genres": preferred_genres,
         "expanded_genres": list(expanded_genres) if expanded_genres else [],
-        "expanded_genres_names": [{"id": gid, "name": genre_names.get(gid)} for gid in expanded_genres if
-                                  genre_names.get(gid)] if expanded_genres else [],
+        "expanded_genres_names": [{"id": gid, "name": genre_names.get(gid)} for gid in expanded_genres if genre_names.get(gid)] if expanded_genres else [],
         "preferred_authors": [str(a) for a in preferred_authors],
         "conditions_used": conditions if conditions else ["popular_fallback"]
     }

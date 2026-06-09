@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, delete
 
 import uuid
 import uuid6
@@ -16,7 +16,13 @@ from src.models.albums_models import (
 )
 from src.models.tracks_models import Tracks, TracksStatuses, Genres, TrackGenres
 from src.api.dependencies import get_current_user, CurrentUser
-from src.api.schemas import AlbumCreateDraft, AlbumUpdateDraft, TrackCreateDraft, TrackUpdateDraft
+from src.api.schemas import (
+    AlbumCreateDraft,
+    AlbumUpdateDraft,
+    TrackCreateDraft,
+    TrackUpdateDraft,
+    GenreIdsPayload
+)
 
 router = APIRouter(prefix="/album_create", tags=["Albums & Tracks creation"])
 
@@ -42,7 +48,7 @@ async def create_album_draft(
     db: AsyncSession = Depends(get_db),
     user: CurrentUser = Depends(get_current_user)
 ):
-    type_id = await _get_ref_id(db, AlbumTypes, payload.type)
+    type_id = payload.type
     status_id = await _get_ref_id(db, AlbumStatuses, "draft")
 
     album = Albums(
@@ -154,6 +160,67 @@ async def create_and_attach_track(
         "track_id": str(new_track.id),
         "album_id": str(album_id),
         "number": next_number
+    }
+
+
+@router.post("/tracks/{track_id}/genres", status_code=status.HTTP_200_OK)
+async def attach_genres_to_track(
+        track_id: uuid.UUID,
+        payload: GenreIdsPayload,  # ← payload в теле запроса
+        db: AsyncSession = Depends(get_db),
+        current_user: CurrentUser = Depends(get_current_user)
+):
+    """
+    Привязка списка жанров к треку.
+    Удаляет старые связи и добавляет новые.
+
+    Тело запроса:
+    {
+        "genre_ids": [1, 2, 3, 5]
+    }
+    """
+
+    # 1. Проверяем существование трека и права автора
+    track_result = await db.execute(
+        select(Tracks).where(Tracks.id == track_id)
+    )
+    track = track_result.scalar_one_or_none()
+
+    if not track:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Track not found"
+        )
+
+    # Проверяем, что текущий пользователь — автор трека
+    if track.author_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only the author can modify track genres"
+        )
+
+    # 2. Удаляем старые связи с жанрами
+    await db.execute(
+        delete(TrackGenres).where(TrackGenres.track_id == track_id)
+    )
+
+    # 3. Добавляем новые связи
+    genre_ids = payload.genre_ids
+    if genre_ids:
+        for genre_id in genre_ids:
+            track_genre = TrackGenres(
+                track_id=track_id,
+                genre_id=genre_id
+            )
+            db.add(track_genre)
+
+    await db.commit()
+
+    return {
+        "track_id": str(track_id),
+        "genre_ids": genre_ids,
+        "count": len(genre_ids),
+        "message": f"Successfully attached {len(genre_ids)} genres to track"
     }
 
 

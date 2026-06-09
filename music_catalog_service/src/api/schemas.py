@@ -6,7 +6,7 @@ import uuid
 
 class AlbumCreateDraft(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
-    type: str = Field("single", description="single | ep | album | mixtape")
+    type: int = None
     cover_url: Optional[str] = None
 
 
@@ -38,3 +38,6 @@ class AlbumResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class GenreIdsPayload(BaseModel):
+    genre_ids: list[int]

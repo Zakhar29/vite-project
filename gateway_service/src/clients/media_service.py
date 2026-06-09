@@ -7,11 +7,11 @@ class MediaClient(ServiceClient):
     def __init__(self):
         super().__init__(settings.MEDIA_SERVICE_URL)
 
-    async def upload_avatar(self, file: UploadFile, token: str, replace: bool = True) -> dict:
+    async def upload_avatar(self, file: UploadFile, token: str) -> dict:
         """Загрузить аватарку"""
-        files = [("file", (file.filename, await file.read(), file.content_type))]
-        data = [("replace", str(replace).lower())]
-        return await self._request("POST", "/avatar", token=token, files=files, data=data)
+        file_content = await file.read()
+        files = [("file", (file.filename, file_content, file.content_type))]
+        return await self._request("POST", "/avatar", token=token, files=files)
 
     async def delete_avatar(self, token: str, sizes: list[str] = None) -> dict:
         """Удалить аватарку"""
@@ -35,11 +35,10 @@ class MediaClient(ServiceClient):
         files = [("file", (file.filename, await file.read(), file.content_type))]
         return await self._request("POST", f"/media/{post_id}/image", files=files)
 
-    async def upload_post_video(self, post_id: str, file: UploadFile, quality: str = "1080p") -> dict:
+    async def upload_post_video(self, post_id: str, file: UploadFile) -> dict:
         """Загрузить видео в пост"""
         files = [("file", (file.filename, await file.read(), file.content_type))]
-        data = [("quality", quality)]
-        return await self._request("POST", f"/media/{post_id}/video", files=files, data=data)
+        return await self._request("POST", f"/media/{post_id}/video", files=files)
 
     async def delete_post_media(self, post_id: str, media_keys: list[str]) -> dict:
         """Удалить медиа из поста"""

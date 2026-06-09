@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестирование API - Создание альбома</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .card-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input {
+            padding: 8px;
+            background: #f5f5f5;
+        }
+
+        .track-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .track-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .track-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-submit {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background: #5a67d8;
+        }
+
+        .btn-logout {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .btn-logout:hover {
+            background: #5a6268;
+        }
+
+        .response {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .response.success {
+            background: #1e3a2e;
+            color: #4ade80;
+        }
+
+        .response.error {
+            background: #3a1e1e;
+            color: #f87171;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .genre-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .genre-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .genre-option input {
+            width: auto;
+            margin: 0;
+        }
+
+        .genre-option label {
+            margin: 0;
+            font-weight: normal;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <h1>🎵 Создание альбома</h1>
+            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+        </div>
+
+        <!-- Основная информация об альбоме -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📀 Информация об альбоме</h2>
+                <span class="badge">Required</span>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>Название альбома *</label>
+                    <input type="text" id="album-title" placeholder="My Awesome Album">
+                </div>
+                <div class="form-group">
+                    <label>Тип альбома *</label>
+                    <select id="album-type"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Обложка *</label>
+                <input type="file" id="album-cover" accept="image/*" class="file-input">
+            </div>
+        </div>
+
+        <!-- Список треков -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🎵 Треки</h2>
+                <span class="badge">1-10 треков</span>
+            </div>
+            <div id="tracks-container"></div>
+            <button type="button" class="btn-add" onclick="addTrack()">+ Добавить трек</button>
+        </div>
+
+        <!-- Кнопка отправки -->
+        <div class="card">
+            <button type="button" class="btn-submit" onclick="submitAlbum()">🚀 Создать альбом</button>
+        </div>
+
+        <!-- Результат -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Результат запроса</h2>
+                <span id="status-badge"></span>
+            </div>
+            <div id="response" class="response">Загрузка данных...</div>
+        </div>
+    </div>
+
+    <script>
+        let trackCount = 1;
+        let albumTypes = [];
+        let genres = [];
+
+        function getToken() {
+            return localStorage.getItem('access_token');
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '/test/login';
+        }
+
+        // Проверка токена при загрузке
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '/test/login';
+                return;
+            }
+
+            await loadFormData();
+            addTrack();
+        });
+
+        async function loadFormData() {
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch('http://localhost:8080/new_album/create-form-data', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('access_token');
+                    window.location.href = '/test/login';
+                    return;
+                }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    albumTypes = data.album_types || [];
+                    genres = data.genres || [];
+
+                    // Обновляем select типов альбомов
+                    const albumTypeSelect = document.getElementById('album-type');
+                    albumTypeSelect.innerHTML = '';
+                    if (albumTypes.length > 0) {
+                        for (const type of albumTypes) {
+                            const option = document.createElement('option');
+                            option.value = type.id;
+                            option.textContent = type.title;
+                            albumTypeSelect.appendChild(option);
+                        }
+                    } else {
+                        albumTypeSelect.innerHTML = `
+                            <option value="1">Альбом</option>
+                            <option value="2">Сингл</option>
+                            <option value="3">EP</option>
+                        `;
+                    }
+
+                    // Обновляем жанры во всех треках
+                    updateAllGenreSelects();
+
+                    const responseDiv = document.getElementById('response');
+                    responseDiv.innerHTML = `✅ Загружено ${albumTypes.length} типов альбомов и ${genres.length} жанров`;
+                    responseDiv.className = 'response success';
+
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error loading form data:', error);
+                const responseDiv = document.getElementById('response');
+                responseDiv.innerHTML = `❌ Ошибка загрузки: ${error.message}\n\nИспользуются значения по умолчанию.`;
+                responseDiv.className = 'response error';
+
+                // Заглушка
+                albumTypes = [
+                    {id: 1, title: "Альбом"},
+                    {id: 2, title: "Сингл"},
+                    {id: 3, title: "EP"}
+                ];
+                genres = [
+                    {id: 1, title: "Рок"},
+                    {id: 2, title: "Поп"},
+                    {id: 3, title: "Электроника"},
+                    {id: 4, title: "Хип-хоп"},
+                    {id: 5, title: "Джаз"}
+                ];
+                updateAllGenreSelects();
+            }
+        }
+
+        function updateAllGenreSelects() {
+            const trackElements = document.querySelectorAll('.track-item');
+            trackElements.forEach((track) => {
+                const trackId = track.id.split('-')[1];
+                updateGenreSelect(trackId);
+            });
+        }
+
+        function updateGenreSelect(trackId) {
+            const container = document.getElementById(`track-${trackId}-genres-container`);
+            if (!container) return;
+
+            container.innerHTML = '';
+            container.className = 'genre-container';
+
+            if (genres.length === 0) {
+                container.innerHTML = '<span style="color: #999;">Загрузка жанров...</span>';
+                return;
+            }
+
+            for (const genre of genres) {
+                const div = document.createElement('div');
+                div.className = 'genre-option';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = genre.id;
+                checkbox.id = `track-${trackId}-genre-${genre.id}`;
+                checkbox.className = `track-${trackId}-genre-checkbox`;
+
+                const label = document.createElement('label');
+                label.htmlFor = `track-${trackId}-genre-${genre.id}`;
+                label.textContent = genre.title;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                container.appendChild(div);
+            }
+        }
+
+        function getSelectedGenres(trackId) {
+            const checkboxes = document.querySelectorAll(`.track-${trackId}-genre-checkbox:checked`);
+            const genreIds = [];
+            checkboxes.forEach(cb => {
+                genreIds.push(parseInt(cb.value));
+            });
+            return genreIds;
+        }
+
+        function addTrack() {
+            const container = document.getElementById('tracks-container');
+            const trackDiv = document.createElement('div');
+            trackDiv.className = 'track-item';
+            trackDiv.id = `track-${trackCount}`;
+            trackDiv.innerHTML = `
+                <div class="track-header">
+                    <span class="track-title">Трек ${trackCount}</span>
+                    <button type="button" class="btn-remove" onclick="removeTrack(${trackCount})">Удалить</button>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Название трека *</label>
+                        <input type="text" id="track-${trackCount}-title" placeholder="Track title">
+                    </div>
+                    <div class="form-group">
+                        <label>BPM *</label>
+                        <input type="number" id="track-${trackCount}-bpm" placeholder="120" step="0.1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Жанры</label>
+                    <div id="track-${trackCount}-genres-container" class="genre-container"></div>
+                    <small style="color: #666;">Выберите жанры для трека</small>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>Текст трека</label>
+                        <textarea id="track-${trackCount}-text" rows="2" placeholder="Текст песни..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Author Attention</label>
+                        <select id="track-${trackCount}-author-attention">
+                            <option value="false">Нет</option>
+                            <option value="true">Да</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Аудиофайл *</label>
+                    <input type="file" id="track-${trackCount}-file" accept="audio/*" class="file-input">
+                </div>
+            `;
+            container.appendChild(trackDiv);
+
+            updateGenreSelect(trackCount);
+            trackCount++;
+        }
+
+        function removeTrack(id) {
+            const totalTracks = document.querySelectorAll('.track-item').length;
+            if (totalTracks <= 1) {
+                alert('Нельзя удалить последний трек!');
+                return;
+            }
+            const track = document.getElementById(`track-${id}`);
+            if (track) {
+                track.remove();
+            }
+        }
+
+        async function submitAlbum() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '/test/login';
+                return;
+            }
+
+            const title = document.getElementById('album-title').value;
+            const type = document.getElementById('album-type').value;
+            const coverFile = document.getElementById('album-cover').files[0];
+
+            if (!title) {
+                alert('Введите название альбома!');
+                return;
+            }
+            if (!coverFile) {
+                alert('Выберите обложку!');
+                return;
+            }
+
+            const tracks = [];
+            const trackElements = document.querySelectorAll('.track-item');
+
+            for (let i = 0; i < trackElements.length; i++) {
+                const trackId = trackElements[i].id.split('-')[1];
+                const trackTitle = document.getElementById(`track-${trackId}-title`).value;
+                const trackBpm = document.getElementById(`track-${trackId}-bpm`).value;
+                const trackText = document.getElementById(`track-${trackId}-text`).value;
+                const trackAuthorAttention = document.getElementById(`track-${trackId}-author-attention`).value;
+                const trackFile = document.getElementById(`track-${trackId}-file`).files[0];
+                const trackGenres = getSelectedGenres(trackId);
+
+                if (!trackTitle) {
+                    alert(`Введите название трека ${i + 1}!`);
+                    return;
+                }
+                if (!trackBpm) {
+                    alert(`Введите BPM для трека ${i + 1}!`);
+                    return;
+                }
+                if (!trackFile) {
+                    alert(`Выберите аудиофайл для трека ${i + 1}!`);
+                    return;
+                }
+
+                tracks.push({
+                    title: trackTitle,
+                    bpm: parseFloat(trackBpm),
+                    genres: trackGenres,
+                    text: trackText,
+                    author_attention: trackAuthorAttention === 'true',
+                    file: trackFile
+                });
+            }
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('type', type);
+            formData.append('cover', coverFile);
+            formData.append('tracks_count', tracks.length.toString());
+
+            for (let i = 0; i < tracks.length; i++) {
+                const track = tracks[i];
+                formData.append(`track_${i}_title`, track.title);
+                formData.append(`track_${i}_bpm`, track.bpm.toString());
+                formData.append(`track_${i}_genres`, JSON.stringify(track.genres));
+                formData.append(`track_${i}_text`, track.text);
+                formData.append(`track_${i}_author_attention`, track.author_attention.toString());
+                formData.append(`track_${i}_file`, track.file);
+            }
+
+            const responseDiv = document.getElementById('response');
+            const statusBadge = document.getElementById('status-badge');
+
+            responseDiv.innerHTML = 'Отправка запроса...';
+            responseDiv.className = 'response';
+            statusBadge.innerHTML = '';
+
+            try {
+                const response = await fetch('http://localhost:8080/new_album/create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    responseDiv.innerHTML = JSON.stringify(result, null, 2);
+                    responseDiv.className = 'response success';
+                    statusBadge.innerHTML = '<span class="status-badge status-success">✅ Успешно</span>';
+                } else {
+                    responseDiv.innerHTML = JSON.stringify(result, null, 2);
+                    responseDiv.className = 'response error';
+                    statusBadge.innerHTML = '<span class="status-badge status-error">❌ Ошибка</span>';
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `Ошибка: ${error.message}`;
+                responseDiv.className = 'response error';
+                statusBadge.innerHTML = '<span class="status-badge status-error">❌ Ошибка сети</span>';
+            }
+        }
+    </script>
+</body>
+</html>

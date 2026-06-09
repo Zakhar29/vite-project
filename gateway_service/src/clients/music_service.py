@@ -42,6 +42,11 @@ class MusicClient(ServiceClient):
         }
         return await self._request("POST", f"/album_create/albums/{album_id}/tracks", token=token, json=payload)
 
+    async def attach_genres_to_track(self, track_id: str, genre_ids: list [int], token: str) -> dict:
+        """Привязка жанров к треку"""
+        payload = {"genre_ids": genre_ids}
+        return await self._request("POST", f"/album_create/tracks/{track_id}/genres", token=token, json=payload)
+
     async def publish_album(self, album_id: str, token: str) -> dict:
         """Опубликовать альбом"""
         return await self._request("POST", f"/album_create/albums/{album_id}/publish", token=token)
@@ -69,7 +74,7 @@ class MusicClient(ServiceClient):
     async def search_tracks(
             self,
             query: Optional[str] = None,
-            genre_ids: Optional[List[int]] = None,
+            genre_ids: Optional[list [int]] = None,
             author_id: Optional[str] = None,
             bpm_min: Optional[float] = None,
             bpm_max: Optional[float] = None,
@@ -101,7 +106,7 @@ class MusicClient(ServiceClient):
     async def search_albums(
             self,
             query: Optional[str] = None,
-            genre_ids: Optional[List[int]] = None,
+            genre_ids: Optional[list[int]] = None,
             author_id: Optional[str] = None,
             album_type: Optional[int] = None,
             published_after: Optional[str] = None,

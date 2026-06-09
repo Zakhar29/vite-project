@@ -7,6 +7,9 @@ from pydantic import BaseModel
 
 from config import settings
 
+from src.services.post_service import PostService
+
+
 security = HTTPBearer()
 
 
@@ -34,3 +37,7 @@ async def get_current_user(
         return CurrentUser(id=UUID(user_id))
     except ValueError as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid user id") from exc
+
+
+def get_post_service() -> PostService:
+    return PostService()
