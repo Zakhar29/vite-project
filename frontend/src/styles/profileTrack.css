@@ -1,0 +1,250 @@
+/* profileTrack.css */
+
+.profile-track {
+  background: #171A1FFF;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: 0.3s;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+}
+
+.profile-track:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(74, 158, 255, 0.2);
+}
+
+/* ===== Левая часть ===== */
+.track-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.track-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.track-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  font-size: 13px;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Центральная часть ===== */
+.track-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.track-bpm {
+  background-color: #1f2937;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #e5e7eb;
+  white-space: nowrap;
+}
+
+.track-year {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ===== Правая часть ===== */
+.track-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.track-stats {
+  display: flex;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.track-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.control-btn.play-btn {
+  color: #4a9eff;
+  font-size: 18px;
+  background: rgba(74, 158, 255, 0.1);
+  padding: 6px 14px;
+}
+
+.control-btn.play-btn:hover {
+  background: rgba(74, 158, 255, 0.2);
+  color: #3a8aee;
+}
+
+.control-btn.like-btn.liked {
+  color: #ff6b6b;
+}
+
+.control-btn.like-btn.liked:hover {
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.track-empty {
+  color: #6b7280;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 768px) {
+  .profile-track {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .track-left {
+    min-width: unset;
+  }
+
+  .track-center {
+    justify-content: flex-start;
+    padding-left: 70px;
+  }
+
+  .track-right {
+    justify-content: space-between;
+    padding-left: 70px;
+  }
+
+  .track-stats {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .control-btn {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+
+  .control-btn.play-btn {
+    font-size: 16px;
+    padding: 4px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-track {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .track-cover {
+    width: 44px;
+    height: 44px;
+  }
+
+  .track-title {
+    font-size: 14px;
+  }
+
+  .track-artist {
+    font-size: 12px;
+  }
+
+  .track-center {
+    padding-left: 58px;
+    font-size: 12px;
+  }
+
+  .track-right {
+    padding-left: 58px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .track-stats {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .control-btn {
+    font-size: 13px;
+    padding: 3px 6px;
+  }
+
+  .control-btn.play-btn {
+    font-size: 14px;
+    padding: 3px 10px;
+  }
+
+  .track-bpm {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+
+  .track-year {
+    font-size: 11px;
+  }
+}

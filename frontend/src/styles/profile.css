@@ -34,11 +34,40 @@
   width: 384px;
 }
 
-.profile-stats{
-  display:flex;
-  gap:30px;
-  margin-left: -250px;
-  margin-top: 100px;
+/* profile.css */
+.profile-stats {
+  display: flex;
+  gap: 24px;
+  margin: 12px 0;
+  padding: 12px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: color 0.2s;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.stat-link:hover {
+  color: #4a9eff;
+  background: rgba(74, 158, 255, 0.1);
+}
+
+.stat-number {
+  font-weight: 600;
+  color: #e2e8f0;
+  font-size: 16px;
+}
+
+.stat-label {
+  font-size: 14px;
 }
 
 .count{

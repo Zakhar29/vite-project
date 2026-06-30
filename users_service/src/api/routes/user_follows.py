@@ -26,6 +26,7 @@ async def follow_user(
     if current_user.id == user_id:
         raise HTTPException(status_code=400, detail="Cannot follow yourself")
 
+    # ===== ИСПРАВЛЕНО: используем await для execute, потом scalar_one_or_none =====
     result = await db.execute(select(Users).where(Users.id == user_id))
     target_user = result.scalar_one_or_none()
     if not target_user:
@@ -41,40 +42,45 @@ async def follow_user(
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Already following")
 
-
+    # Создаем подписку
     follow = Followers(follower_id=current_user.id, following_id=user_id)
     db.add(follow)
 
+    # Проверяем, есть ли взаимная подписка (друзья)
     friendship = await db.execute(
         select(Followers).where(
             Followers.follower_id == user_id,
             Followers.following_id == current_user.id
         )
-    ).scalar_one_or_none()
-    
-    if friendship:
+    )
+    if friendship.scalar_one_or_none():
+        # Добавляем в друзья
         friend = Friends(friend1=current_user.id, friend2=user_id)
         db.add(friend)
+        
+        # Обновляем счетчики друзей
         await db.execute(
-            update(Users).where(Users.id == current_user.id).values(
-                friends_quantity=Users.friends_quantity + 1,
-            )
+            update(Users)
+            .where(Users.id == current_user.id)
+            .values(friends_quantity=Users.friends_quantity + 1)
         )
         await db.execute(
-            update(Users).where(Users.id == user_id).values(
-                friends_quantity=Users.friends_quantity + 1
-            )
+            update(Users)
+            .where(Users.id == user_id)
+            .values(friends_quantity=Users.friends_quantity + 1)
         )
+
+    # Обновляем счетчики подписок
     await db.execute(
-        update(Users).where(Users.id == current_user.id).values(
-            following_quantity=Users.following_quantity + 1
-        )
+        update(Users)
+        .where(Users.id == current_user.id)
+        .values(following_quantity=Users.following_quantity + 1)
     )
 
     await db.execute(
-        update(Users).where(Users.id == user_id).values(
-            follower_quantity=Users.follower_quantity + 1
-        )
+        update(Users)
+        .where(Users.id == user_id)
+        .values(follower_quantity=Users.follower_quantity + 1)
     )
 
     await db.commit()
@@ -87,6 +93,7 @@ async def unfollow_user(
         db: AsyncSession = Depends(get_db),
         current_user: Users = Depends(get_current_user)
 ):
+    # ===== ИСПРАВЛЕНО: используем await для execute =====
     result = await db.execute(
         select(Followers).where(
             Followers.follower_id == current_user.id,
@@ -100,6 +107,7 @@ async def unfollow_user(
 
     await db.delete(follow)
 
+    # Проверяем, были ли друзьями
     friend = await db.execute(
         select(Friends).where(
             or_(
@@ -107,36 +115,36 @@ async def unfollow_user(
                 and_(Friends.friend1 == user_id, Friends.friend2 == current_user.id)
             )
         )
-    ).scalar_one_or_none()
-
-    if friend:
-        await db.delete(friend)
+    )
+    if friend.scalar_one_or_none():
+        await db.delete(friend.scalar_one())
+        
+        # Обновляем счетчики друзей
         await db.execute(
-            update(Users).where(Users.id == current_user.id).values(
-                friends_quantity=Users.friends_quantity - 1
-            )
+            update(Users)
+            .where(Users.id == current_user.id)
+            .values(friends_quantity=Users.friends_quantity - 1)
         )
         await db.execute(
-            update(Users).where(Users.id == user_id).values(
-                friends_quantity=Users.friends_quantity - 1
-            )
+            update(Users)
+            .where(Users.id == user_id)
+            .values(friends_quantity=Users.friends_quantity - 1)
         )
     
+    # Обновляем счетчики подписок
     await db.execute(
-        update(Users).where(Users.id == current_user.id).values(
-            following_quantity=Users.following_quantity - 1,
-        )
+        update(Users)
+        .where(Users.id == current_user.id)
+        .values(following_quantity=Users.following_quantity - 1)
     )
     
     await db.execute(
-        update(Users).where(Users.id == user_id).values(
-            follower_quantity=Users.follower_quantity - 1
-        )
+        update(Users)
+        .where(Users.id == user_id)
+        .values(follower_quantity=Users.follower_quantity - 1)
     )
-
 
     await db.commit()
     return {"message": "Successfully unfollowed"}
-
 
 

@@ -33,21 +33,50 @@ class SocialClient(ServiceClient):
         return await self._request("GET", "/posts", params=params)
 
     async def get_recommended_posts(
-            self,
-            following_ids: Optional[list[str]] = None,
-            skip: int = 0,
-            limit: int = 20
+        self,
+        following_ids: Optional[list[str]] = None,
+        skip: int = 0,
+        limit: int = 20
     ) -> dict:
         """
         Получение рекомендаций постов.
-        following_ids — список ID авторов, на которых подписан пользователь.
         """
         params = {"skip": skip, "limit": limit}
-
-        if following_ids and len(following_ids) > 0:
+        
+        if following_ids:
             params["following_ids"] = ",".join(following_ids)
-
-        return await self._request("GET", "/feed/recommendations", params=params)
+        
+        try:
+            response = await self._request("GET", "/feed/recommendations", params=params)
+            
+            # ===== ПРОВЕРЯЕМ ОТВЕТ =====
+            print(f"🔍 Ответ от social_feed_service: {response}")
+            print(f"🔍 Тип ответа: {type(response)}")
+            
+            # Если ответ None или пустой
+            if not response:
+                return {"items": [], "total": 0}
+            
+            # Если ответ - список
+            if isinstance(response, list):
+                return {"items": response, "total": len(response)}
+            
+            # Если ответ - словарь
+            if isinstance(response, dict):
+                items = response.get("items", [])
+                if not isinstance(items, list):
+                    items = []
+                return {
+                    "items": items,
+                    "total": response.get("total", len(items))
+                }
+            
+            # Если ничего не подошло
+            return {"items": [], "total": 0}
+        
+        except Exception as e:
+            print(f"❌ Ошибка получения рекомендаций: {e}")
+            return {"items": [], "total": 0}
 
     async def get_post(self, post_id: str) -> dict:
         """Получить пост"""

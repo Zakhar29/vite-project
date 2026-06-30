@@ -117,3 +117,29 @@
 .track-duration {
   color: #ff66cc;
 }
+
+/* styles/album.css */
+
+.track-play-btn {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.track-play-btn:hover {
+  color: #1db954;
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.track-row:hover .track-play-btn {
+  color: #ffffff;
+}
+
+.track-play-btn:active {
+  transform: scale(0.9);
+}

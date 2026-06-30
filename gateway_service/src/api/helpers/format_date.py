@@ -1,16 +1,36 @@
 from datetime import datetime
+from typing import Optional, List
+
+
+def parse_datetime(dt_str: str) -> Optional[datetime]:
+    """Парсит дату из строки с поддержкой разных форматов."""
+    if not dt_str:
+        return None
+    
+    try:
+        # Убираем Z и +00:00 если есть
+        dt_str_clean = dt_str.replace('Z', '+00:00')
+        return datetime.fromisoformat(dt_str_clean)
+    except ValueError:
+        try:
+            # Пробуем без миллисекунд
+            if '.' in dt_str:
+                dt_str_clean = dt_str.split('.')[0] + '+00:00'
+            else:
+                dt_str_clean = dt_str
+            return datetime.fromisoformat(dt_str_clean)
+        except ValueError:
+            print(f"⚠️ Не удалось распарсить дату: {dt_str}")
+            return None
+
 
 def format_date_ru(created_at: datetime) -> str:
     """
     Русская версия форматирования даты.
-
-    Правила:
-    - Сегодня: "сегодня"
-    - Вчера: "вчера"
-    - До недели: "X дней назад" (с правильным склонением)
-    - В этом году: "2 июня"
-    - В прошлые годы: "3 декабря 2025"
     """
+    if not created_at:
+        return "сегодня"
+    
     now = datetime.now()
     diff = now - created_at
 

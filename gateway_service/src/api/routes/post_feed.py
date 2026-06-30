@@ -22,38 +22,62 @@ async def get_feed(
         request: Request,
         skip: int = Query(0, ge=0),
         limit: int = Query(20, ge=1, le=50),
-        current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
+        # ===== УБИРАЕМ ЗАВИСИМОСТЬ ОТ АВТОРИЗАЦИИ =====
+        # current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
         users_client: UsersClient = Depends(get_users_client),
         social_client: SocialClient = Depends(get_social_client)
 ):
     """
     Получение ленты постов для главной страницы.
-
-    Алгоритм:
-    1. Если пользователь авторизован:
-       - Получаем список подписок
-       - Если есть подписки → смешанная лента (посты подписок + популярные)
-       - Если нет подписок → только популярные посты
-    2. Если пользователь не авторизован:
-       - Только популярные посты
+    ПОЛНОСТЬЮ ПУБЛИЧНЫЙ ЭНДПОИНТ - не требует авторизации.
     """
 
-    # Получаем токен (если есть)
+    # ===== ПЫТАЕМСЯ ПОЛУЧИТЬ ПОЛЬЗОВАТЕЛЯ, НО НЕ ТРЕБУЕМ =====
+    is_authenticated = False
+    current_user = None
+    token = None
+    
+    # Проверяем Authorization header
     auth_header = request.headers.get("Authorization", "")
-    token = auth_header.replace("Bearer ", "") if auth_header else None
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+        # Пытаемся получить пользователя через get_optional_current_user
+        try:
+            # Создаем зависимость вручную
+            from src.api.dependencies import get_optional_current_user
+            # Это не сработает напрямую, поэтому используем другой подход
+        except:
+            pass
+    
+    # Вместо этого используем простой подход - получаем user_id из токена если есть
+    user_id = None
+    if token:
+        try:
+            import jwt
+            from config import settings
+            payload = jwt.decode(
+                token,
+                settings.SECRET_KEY,
+                algorithms=[settings.ALGORITHM],
+                options={"verify_exp": False}
+            )
+            user_uuid = payload.get("user_id") or payload.get("sub")
+            if user_uuid:
+                user_id = str(user_uuid)
+                is_authenticated = True
+        except Exception:
+            pass
 
     following_ids = []
-    is_authenticated = current_user is not None
 
     # ========== 1. ПОЛУЧАЕМ СПИСОК ПОДПИСОК (ТОЛЬКО ДЛЯ АВТОРИЗОВАННЫХ) ==========
-    if is_authenticated and token:
+    if is_authenticated and user_id:
         try:
             following = await users_client.get_following(
-                user_id=str(current_user.id),
+                user_id=user_id,
                 skip=0,
                 limit=100
             )
-            # Извлекаем ID пользователей, на которых подписан
             if isinstance(following, dict):
                 following_items = following.get("items", [])
                 following_ids = [user.get("id") for user in following_items if user.get("id")]
@@ -64,18 +88,57 @@ async def get_feed(
             following_ids = []
 
     # ========== 2. ПОЛУЧАЕМ РЕКОМЕНДАЦИИ ПОСТОВ ==========
+    posts = []
+    total = 0
+    
     try:
-        # Если есть подписки — передаём их, иначе social_service вернёт только популярные
+        # Если есть подписки — передаём их
         posts_result = await social_client.get_recommended_posts(
             following_ids=following_ids if following_ids else None,
             skip=skip,
             limit=limit
         )
+        
+        # Извлекаем посты
+        if isinstance(posts_result, dict):
+            posts = posts_result.get("items", [])
+            total = posts_result.get("total", 0)
+        elif isinstance(posts_result, list):
+            posts = posts_result
+            total = len(posts)
+        
+        # ===== ФИЛЬТРУЕМ НЕВАЛИДНЫЕ ПОСТЫ =====
+        valid_posts = []
+        for post in posts:
+            if isinstance(post, dict) and post.get("id"):
+                valid_posts.append(post)
+            else:
+                print(f"⚠️ Пропускаем невалидный пост: {post}")
+        
+        posts = valid_posts
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get posts: {str(e)}")
+        print(f"❌ Ошибка получения постов: {e}")
+        # Fallback: получаем популярные посты
+        try:
+            popular_result = await social_client.list_posts(
+                skip=0,
+                limit=limit,
+                sort_by="likes_quantity",
+                sort_order="desc"
+            )
+            if isinstance(popular_result, dict):
+                posts = popular_result.get("items", [])
+                total = popular_result.get("total", 0)
+            elif isinstance(popular_result, list):
+                posts = popular_result
+                total = len(posts)
+        except Exception as e2:
+            print(f"❌ Ошибка получения популярных постов: {e2}")
+            posts = []
+            total = 0
 
-    # ========== 3. ИЗВЛЕКАЕМ АВТОРОВ ДЛЯ ОБОГАЩЕНИЯ ДАННЫМИ ==========
-    posts = posts_result.get("items", [])
+    # ========== 3. ИЗВЛЕКАЕМ АВТОРОВ ==========
     author_ids = list(set([post.get("author_id") for post in posts if post.get("author_id")]))
 
     # ========== 4. ПОЛУЧАЕМ ДАННЫЕ АВТОРОВ ==========
@@ -128,19 +191,24 @@ async def get_feed(
     # ========== 6. ФОРМИРУЕМ ОТВЕТ ==========
     response_data = {
         "posts": formatted_posts,
-        "total": posts_result.get("total", 0),
+        "total": total if total > 0 else len(formatted_posts),
         "skip": skip,
         "limit": limit,
-        "has_more": (skip + limit) < posts_result.get("total", 0),
+        "has_more": (skip + limit) < total,
         "feed_type": "mixed" if following_ids else "popular"
     }
 
-    # Добавляем данные пользователя только для авторизованных
-    if is_authenticated and current_user:
-        response_data["user"] = {
-            "id": str(current_user.id),
-            "nickname": current_user.nickname,
-            "avatar_url": current_user.avatar_url
-        }
+    # Добавляем данные пользователя только если авторизован
+    if is_authenticated and user_id:
+        try:
+            # Пытаемся получить данные пользователя
+            user_info = await users_client.get_user_info(user_id)
+            response_data["user"] = {
+                "id": user_id,
+                "nickname": user_info.get("user_nickname", "Пользователь"),
+                "avatar_url": user_info.get("user_avatar", "/static/default-avatar.png")
+            }
+        except Exception:
+            pass
 
     return response_data

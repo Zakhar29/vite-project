@@ -1,0 +1,251 @@
+/* albumCard.css */
+
+.album-card {
+  background: #171A1FFF;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: 0.3s;
+  cursor: pointer;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.album-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Обложка ===== */
+.album-card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 100%;
+  background: #0d0d1a;
+}
+
+.album-card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.album-card:hover .album-card-image {
+  transform: scale(1.03);
+}
+
+.album-card-play-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #4a9eff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+  font-size: 16px;
+  z-index: 2;
+}
+
+.album-card:hover .album-card-play-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.album-card-play-btn:hover {
+  background: #3a8aee;
+  transform: scale(1.1);
+}
+
+.album-card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Информация ===== */
+.album-card-info {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.album-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-card-artist {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-card-artist:hover {
+  color: #4a9eff;
+  text-decoration: underline;
+}
+
+.album-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.album-card-year {
+  margin-left: auto;
+}
+
+/* ===== Треки ===== */
+.album-card-toggle {
+  background: none;
+  border: none;
+  color: #4a9eff;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 0 2px 0;
+  margin-top: 8px;
+  transition: color 0.2s;
+  text-align: left;
+  width: fit-content;
+}
+
+.album-card-toggle:hover {
+  color: #3a8aee;
+  text-decoration: underline;
+}
+
+.album-card-tracks {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+}
+
+.album-card-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.album-card-track:hover {
+  background: rgba(74, 158, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.album-card-track .track-number {
+  color: #6b7280;
+  font-size: 12px;
+  min-width: 24px;
+}
+
+.album-card-track .track-title {
+  flex: 1;
+}
+
+.album-card-track .track-duration {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.album-card-track-more {
+  color: #6b7280;
+  font-size: 12px;
+  padding: 4px 8px;
+  font-style: italic;
+}
+
+/* ===== Адаптивность ===== */
+@media (max-width: 768px) {
+  .album-card-play-btn {
+    opacity: 1;
+    transform: translateY(0);
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .album-card-info {
+    padding: 12px 14px 14px;
+  }
+
+  .album-card-title {
+    font-size: 14px;
+  }
+
+  .album-card-artist {
+    font-size: 12px;
+  }
+
+  .album-card-meta {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-card-info {
+    padding: 10px 12px 12px;
+  }
+
+  .album-card-title {
+    font-size: 13px;
+  }
+
+  .album-card-artist {
+    font-size: 11px;
+  }
+
+  .album-card-track {
+    font-size: 12px;
+  }
+
+  .album-card-play-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+}

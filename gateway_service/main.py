@@ -40,67 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# ========== HTML СТРАНИЦА ДЛЯ ТЕСТИРОВАНИЯ ==========
-@app.get("/test/login", response_class=HTMLResponse)
-async def test_login_page():
-    """Страница ввода токена"""
-    try:
-        with open("static/login.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="<h1>404</h1><p>File not found</p>", status_code=404)
-@app.get("/test/album-create", response_class=HTMLResponse)
-async def test_album_create_page():
-    """Страница для тестирования создания альбома"""
-    try:
-        with open("static/album_create.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(
-            content="<h1>404</h1><p>File not found. Please create static/album_create.html</p>", 
-            status_code=404
-        )
-
-@app.get("/test/post-create", response_class=HTMLResponse)
-async def test_post_create_page():
-    try:
-        with open("static/post_create.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="<h1>404</h1><p>File not found</p>", status_code=404)
-
-
-@app.get("/test/feed", response_class=HTMLResponse)
-async def test_feed_page():
-    try:
-        with open("static/feed.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="<h1>404</h1><p>File not found</p>", status_code=404)
-
-
-@app.get("/test", response_class=HTMLResponse)
-async def test_home_page():
-    """Главная страница с рекомендациями"""
-    try:
-        with open("static/index.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="<h1>404</h1><p>File not found</p>", status_code=404)
-
-@app.get("/track/{track_id}", response_class=HTMLResponse)
-async def test_home_page():
-    """Главная страница с рекомендациями"""
-    try:
-        with open("static/track.html", "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(content="<h1>404</h1><p>File not found</p>", status_code=404)
 
 # ========== ПОДКЛЮЧЕНИЕ РОУТЕРОВ ==========
 

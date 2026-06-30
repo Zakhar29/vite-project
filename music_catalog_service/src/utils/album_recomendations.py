@@ -48,13 +48,13 @@ async def enrich_album_response(album, db: AsyncSession) -> dict:
 
     # Краткая информация о треках (первые 3)
     tracks_preview_result = await db.execute(
-        select(Tracks.id, Tracks.title)
+        select(Tracks.id, Tracks.title, Tracks.track_url)
         .join(AlbumTracks, AlbumTracks.track_id == Tracks.id)
         .where(AlbumTracks.album_id == album.id)
         .order_by(AlbumTracks.number)
         .limit(3)
     )
-    tracks_preview = [{"id": str(t.id), "title": t.title} for t in tracks_preview_result.all()]
+    tracks_preview = [{"id": str(t.id), "title": t.title, "track_url": t.track_url} for t in tracks_preview_result.all()]
 
     # Фиты альбома (уникальные фиты из треков)
     feats_result = await db.execute(

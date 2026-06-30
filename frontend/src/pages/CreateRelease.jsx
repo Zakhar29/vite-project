@@ -1,22 +1,71 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/createRelease.css';
 
-const AVAILABLE_GENRES = ['Synthwave', 'Retrowave', 'Darksynth', 'Cyberpunk', 'Chillwave', 'Dreamwave', 'Outrun', 'Electro', 'Lo-fi', 'Techno'];
+// ========== Конфигурация API ==========
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 function CreateRelease() {
   const navigate = useNavigate();
+  const token = localStorage.getItem("access_token");
+
   const [releaseType, setReleaseType] = useState('single');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ========== Данные из API ==========
+  const [albumTypes, setAlbumTypes] = useState([]);
+  const [genres, setGenres] = useState([]);
 
   const [formData, setFormData] = useState({
     title: '',
-    artist: 'Zakhar',        // оставляем в данных, но не показываем поле
     cover: null,
     coverPreview: 'https://picsum.photos/300/300',
-    year: new Date().getFullYear(),
     description: '',
     tracks: []
   });
+
+  // ========== Загрузка справочных данных ==========
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    loadFormData();
+  }, []);
+
+  const loadFormData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/v1/new_album/create-form-data`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка загрузки данных');
+      }
+
+      const data = await response.json();
+
+      // Сохраняем жанры и типы
+      setAlbumTypes(data.album_types || []);
+      setGenres(data.genres || []);
+
+      // Инициализируем треки с учётом типа
+      initializeTracks('single');
+
+    } catch (err) {
+      console.error('Ошибка загрузки:', err);
+      setError('Не удалось загрузить данные для создания релиза');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ========== Вспомогательные функции ==========
 
   const getTypeName = () => {
     if (releaseType === 'single') return 'Сингл';
@@ -30,22 +79,37 @@ function CreateRelease() {
     return 30;
   };
 
-  const handleTypeChange = (type) => {
-    setReleaseType(type);
-    
+  const getTypeId = () => {
+    const typeMap = {
+      'single': 2,
+      'ep': 3,
+      'album': 1
+    };
+    return typeMap[releaseType] || 1;
+  };
+
+  const initializeTracks = (type) => {
     const count = type === 'single' ? 1 : 2;
     const initialTracks = Array.from({ length: count }, (_, i) => ({
       id: Date.now() + i,
       title: '',
       audioFile: null,
-      duration: '',
       bpm: '',
-      lyrics: '',
-      genres: []
+      text: '',
+      genreIds: [],
+      author_attention: false
     }));
-
     setFormData(prev => ({ ...prev, tracks: initialTracks }));
   };
+
+  // ========== Обработчики изменения типа ==========
+
+  const handleTypeChange = (type) => {
+    setReleaseType(type);
+    initializeTracks(type);
+  };
+
+  // ========== Обработчики треков ==========
 
   const addTrack = () => {
     if (formData.tracks.length >= getMaxTracks()) {
@@ -55,14 +119,14 @@ function CreateRelease() {
 
     setFormData(prev => ({
       ...prev,
-      tracks: [...prev.tracks, { 
-        id: Date.now(), 
-        title: '', 
-        audioFile: null, 
-        duration: '', 
-        bpm: '', 
-        lyrics: '', 
-        genres: [] 
+      tracks: [...prev.tracks, {
+        id: Date.now(),
+        title: '',
+        audioFile: null,
+        bpm: '',
+        text: '',
+        genreIds: [],
+        author_attention: false
       }]
     }));
   };
@@ -82,20 +146,7 @@ function CreateRelease() {
     }));
   };
 
-  const handleAudioUpload = (trackId, file) => {
-    if (!file) return;
-    const audio = new Audio();
-    audio.src = URL.createObjectURL(file);
-
-    audio.addEventListener('loadedmetadata', () => {
-      const minutes = Math.floor(audio.duration / 60);
-      const seconds = Math.floor(audio.duration % 60);
-      const duration = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-      updateTrack(trackId, 'duration', duration);
-    });
-
-    updateTrack(trackId, 'audioFile', file);
-  };
+  // ========== Обработчики файлов ==========
 
   const handleCoverChange = (e) => {
     const file = e.target.files[0];
@@ -108,66 +159,169 @@ function CreateRelease() {
     }
   };
 
-  const handleSubmit = (e) => {
+  // ========== Отправка на сервер ==========
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title) return alert('Введите название релиза');
-    if (formData.tracks.some(t => !t.title || !t.audioFile)) {
-      return alert('Заполните название и загрузите аудиофайл для каждого трека');
+    setError('');
+
+    // ===== Валидация =====
+    if (!formData.title.trim()) {
+      alert('Введите название релиза');
+      return;
     }
 
-    const newRelease = {
-      id: Date.now(),
-      type: releaseType,
-      title: formData.title,
-      artist: formData.artist,
-      cover: formData.coverPreview,
-      year: formData.year,
-      description: formData.description,
-      tracks: formData.tracks
-    };
-
-    if (releaseType === 'single') {
-      const existing = JSON.parse(localStorage.getItem('userSingles') || '[]');
-      localStorage.setItem('userSingles', JSON.stringify([newRelease, ...existing]));
-    } else {
-      const existing = JSON.parse(localStorage.getItem('userAlbums') || '[]');
-      localStorage.setItem('userAlbums', JSON.stringify([newRelease, ...existing]));
+    if (!formData.cover) {
+      alert('Выберите обложку релиза');
+      return;
     }
 
-    navigate('/profile/me');
+    if (formData.tracks.some(t => !t.title.trim() || !t.audioFile)) {
+      alert('Заполните название и загрузите аудиофайл для каждого трека');
+      return;
+    }
+
+    if (formData.tracks.some(t => !t.bpm)) {
+      alert('Укажите BPM для каждого трека');
+      return;
+    }
+
+    if (!token) {
+      alert('Необходимо войти в систему');
+      navigate('/login');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formDataObj = buildFormData();
+
+      const response = await fetch(`${API_URL}/api/v1/new_album/create`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formDataObj,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Ошибка создания релиза');
+      }
+
+      const result = await response.json();
+
+      alert('Релиз успешно создан и опубликован! 🎉');
+      navigate(`/album/${result.album_id}`);
+
+    } catch (err) {
+      console.error('Ошибка создания релиза:', err);
+      setError(err.message || 'Ошибка при создании релиза');
+      alert(`Ошибка: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  // ===== Формирование FormData для BFF =====
+
+  const buildFormData = () => {
+    const formDataObj = new FormData();
+
+    // Основные поля
+    formDataObj.append('title', formData.title.trim());
+    formDataObj.append('type', String(getTypeId()));
+    formDataObj.append('cover', formData.cover);
+    formDataObj.append('tracks_count', String(formData.tracks.length));
+
+    // Треки
+    formData.tracks.forEach((track, index) => {
+      formDataObj.append(`track_${index}_title`, track.title.trim());
+      formDataObj.append(`track_${index}_bpm`, track.bpm);
+      formDataObj.append(`track_${index}_genres`, JSON.stringify(track.genreIds));
+      formDataObj.append(`track_${index}_text`, track.text || '');
+      formDataObj.append(`track_${index}_author_attention`, String(track.author_attention));
+      formDataObj.append(`track_${index}_file`, track.audioFile);
+    });
+
+    return formDataObj;
+  };
+
+  // ========== Состояние загрузки ==========
+
+  if (isLoading) {
+    return (
+      <div className="create-release-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Загрузка данных...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ========== Рендер ==========
 
   return (
     <div className="create-release-page">
       <div className="create-release-container neon-border">
         <h1 className="neon-title">Создать релиз</h1>
 
+        {error && (
+          <div className="error-message">{error}</div>
+        )}
+
         <div className="release-type-switch">
-          <button className={releaseType === 'single' ? 'active' : ''} onClick={() => handleTypeChange('single')}>Сингл</button>
-          <button className={releaseType === 'ep' ? 'active' : ''} onClick={() => handleTypeChange('ep')}>EP</button>
-          <button className={releaseType === 'album' ? 'active' : ''} onClick={() => handleTypeChange('album')}>Альбом</button>
+          <button
+            className={releaseType === 'single' ? 'active' : ''}
+            onClick={() => handleTypeChange('single')}
+          >
+            Сингл
+          </button>
+          <button
+            className={releaseType === 'ep' ? 'active' : ''}
+            onClick={() => handleTypeChange('ep')}
+          >
+            EP
+          </button>
+          <button
+            className={releaseType === 'album' ? 'active' : ''}
+            onClick={() => handleTypeChange('album')}
+          >
+            Альбом
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* Обложка */}
           <div className="form-group">
-            <label>Обложка релиза</label>
+            <label>Обложка релиза *</label>
             <div className="cover-upload">
               <img src={formData.coverPreview} alt="cover" className="cover-preview" />
-              <input type="file" accept="image/*" onChange={handleCoverChange} id="coverUpload" hidden />
-              <label htmlFor="coverUpload" className="upload-cover-btn">Выбрать изображение</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCoverChange}
+                id="coverUpload"
+                hidden
+                required
+              />
+              <label htmlFor="coverUpload" className="upload-cover-btn">
+                Выбрать изображение
+              </label>
             </div>
           </div>
 
-          {/* Только название */}
+          {/* Название */}
           <div className="form-group">
-            <label>Название {getTypeName().toLowerCase()}</label>
-            <input 
-              type="text" 
-              value={formData.title} 
-              onChange={e => setFormData({...formData, title: e.target.value})} 
-              required 
-              className="neon-input" 
+            <label>Название {getTypeName().toLowerCase()} *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={e => setFormData({...formData, title: e.target.value})}
+              required
+              className="neon-input"
               placeholder="Введите название релиза"
             />
           </div>
@@ -188,57 +342,70 @@ function CreateRelease() {
                 <div className="track-header">
                   <span>Трек {idx + 1}</span>
                   {formData.tracks.length > 1 && (
-                    <button type="button" onClick={() => removeTrack(track.id)} className="remove-track">✖ Удалить</button>
+                    <button type="button" onClick={() => removeTrack(track.id)} className="remove-track">
+                      ✖ Удалить
+                    </button>
                   )}
                 </div>
 
                 <div className="form-group">
-                  <label>Название трека</label>
-                  <input type="text" value={track.title} onChange={e => updateTrack(track.id, 'title', e.target.value)} required className="neon-input" />
+                  <label>Название трека *</label>
+                  <input
+                    type="text"
+                    value={track.title}
+                    onChange={e => updateTrack(track.id, 'title', e.target.value)}
+                    required
+                    className="neon-input"
+                  />
                 </div>
 
                 <div className="form-group audio-upload">
-                  <label>Аудиофайл</label>
+                  <label>Аудиофайл *</label>
                   <div className="custom-file-upload">
-                    <input 
-                      type="file" 
-                      accept="audio/*" 
-                      onChange={e => handleAudioUpload(track.id, e.target.files[0])} 
-                      id={`audio-${track.id}`} 
-                      hidden 
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={e => {
+                        const file = e.target.files[0];
+                        if (file) updateTrack(track.id, 'audioFile', file);
+                      }}
+                      id={`audio-${track.id}`}
+                      hidden
+                      required
                     />
                     <label htmlFor={`audio-${track.id}`} className="audio-upload-btn">
                       {track.audioFile ? '✓ Файл загружен' : 'Выбрать аудиофайл'}
                     </label>
                   </div>
-                  {track.duration && <span className="duration">Длительность: {track.duration}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>BPM (темп)</label>
-                  <input 
-                    type="number" 
-                    step="0.01" 
-                    value={track.bpm} 
-                    onChange={e => updateTrack(track.id, 'bpm', e.target.value)} 
-                    placeholder="128.00" 
-                    className="neon-input" 
+                  <label>BPM (темп) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={track.bpm}
+                    onChange={e => updateTrack(track.id, 'bpm', e.target.value)}
+                    placeholder="128.00"
+                    className="neon-input"
+                    required
                   />
                 </div>
 
+                {/* Жанры — из загруженных данных */}
                 <div className="form-group genres-select">
                   <label>Жанры (можно несколько)</label>
-                  <select 
-                    multiple 
-                    value={track.genres} 
+                  <select
+                    multiple
+                    value={track.genreIds}
                     onChange={e => {
-                      const selected = Array.from(e.target.selectedOptions, opt => opt.value);
-                      updateTrack(track.id, 'genres', selected);
-                    }} 
+                      const selected = Array.from(e.target.selectedOptions, opt => Number(opt.value));
+                      updateTrack(track.id, 'genreIds', selected);
+                    }}
                     className="neon-select"
                   >
-                    {AVAILABLE_GENRES.map(g => (
-                      <option key={g} value={g}>{g}</option>
+                    {genres.map(g => (
+                      <option key={g.id} value={g.id}>{g.title}</option>
                     ))}
                   </select>
                   <small>Удерживайте Ctrl (или Cmd) для выбора нескольких жанров</small>
@@ -246,20 +413,40 @@ function CreateRelease() {
 
                 <div className="form-group">
                   <label>Текст песни (опционально)</label>
-                  <textarea 
-                    rows="3" 
-                    value={track.lyrics} 
-                    onChange={e => updateTrack(track.id, 'lyrics', e.target.value)} 
-                    className="neon-textarea" 
+                  <textarea
+                    rows="3"
+                    value={track.text}
+                    onChange={e => updateTrack(track.id, 'text', e.target.value)}
+                    className="neon-textarea"
+                    placeholder="Введите текст песни..."
                   />
+                </div>
+
+                <div className="form-group checkbox-group">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={track.author_attention}
+                      onChange={e => updateTrack(track.id, 'author_attention', e.target.checked)}
+                    />
+                    Авторское внимание (выделить трек)
+                  </label>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="neon-btn">Опубликовать релиз</button>
-            <button type="button" onClick={() => navigate(-1)} className="cancel-btn">Отмена</button>
+            <button
+              type="submit"
+              className="neon-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Публикация...' : 'Опубликовать релиз'}
+            </button>
+            <button type="button" onClick={() => navigate(-1)} className="cancel-btn">
+              Отмена
+            </button>
           </div>
         </form>
       </div>

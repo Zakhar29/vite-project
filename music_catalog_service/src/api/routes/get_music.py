@@ -55,6 +55,7 @@ async def build_album_response(
         tracks_full.append({
             "track_id": track.id,
             "title": track.title,
+            "author_id": track.author_id,
             "feats": [tf.feat_user_id for tf in track_feats.scalars().all()],
             "track_url": track.track_url,
             "bpm": float(track.bpm) if track.bpm else None,
@@ -65,6 +66,7 @@ async def build_album_response(
     return {
         "id": str(album.id),
         "title": album.title,
+        "author_id": album.author_id,
         "cover_url": album.cover_url,
         "type_id": album_type.id,
         "type": album_type.title,

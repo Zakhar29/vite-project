@@ -1,6 +1,8 @@
 from typing import Optional
 from src.clients.base import ServiceClient
 from config import settings
+import uuid
+
 
 
 class MusicClient(ServiceClient):
@@ -142,7 +144,7 @@ class MusicClient(ServiceClient):
 
     async def get_track_recommendations(
             self,
-            user_id: Optional[str] = None,
+            user_id: Optional[uuid.UUID] = None,
             limit: int = 20
     ) -> dict:
         """
@@ -152,13 +154,13 @@ class MusicClient(ServiceClient):
         """
         params = {"limit": limit}
         if user_id:
-            params["user_id"] = user_id
+            params["user_id"] = str(user_id)  # Преобразуем UUID в строку
 
         return await self._request("GET", "/tracks/recommendations", params=params)
 
     async def get_album_recommendations(
             self,
-            user_id: Optional[str] = None,
+            user_id: Optional[uuid.UUID] = None,
             limit: int = 20
     ) -> dict:
         """
@@ -168,7 +170,7 @@ class MusicClient(ServiceClient):
         """
         params = {"limit": limit}
         if user_id:
-            params["user_id"] = user_id
+            params["user_id"] = str(user_id)  # Преобразуем UUID в строку
 
         return await self._request("GET", "/albums/recommendations", params=params)
 

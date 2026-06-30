@@ -28,14 +28,12 @@ router = APIRouter(prefix="/new_album", tags=["Album Creation"])
 
 @router.get("/create-form-data")
 async def get_album_create_form_data(
-        current_user: CurrentUser = Depends(get_current_user),
-        music_client: MusicClient = Depends(get_music_client),
+        music_client: MusicClient = Depends(get_music_client)
 ):
     """
     Получение данных для страницы создания альбома:
     - список типов альбомов
     - список жанров
-    - информация о пользователе (для хедера)
     """
 
     # Получаем список типов альбомов
@@ -45,11 +43,6 @@ async def get_album_create_form_data(
     genres = await music_client.get_genres()
 
     return {
-        "user": {
-            "id": str(current_user.id),
-            "nickname": current_user.nickname,
-            "avatar_url": current_user.avatar_url
-        },
         "album_types": album_types.get("items", []),
         "genres": genres.get("items", [])
     }

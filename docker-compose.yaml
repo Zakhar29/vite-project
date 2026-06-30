@@ -169,80 +169,55 @@ services:
     volumes:
       - ./music_catalog_service:/app
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - microservices_network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - microservices_network
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
+  frontend:
+      build: ./frontend
+      container_name: frontend
+      ports:
+        - "5173:5173"
+      networks:
+        - microservices_network
+      volumes:
+        - ./frontend:/app
+        - /app/node_modules
+      environment:
+        NODE_ENV: development
+        CHOKIDAR_USEPOLLING: true
+        VITE_API_URL: http://localhost:8080
+      depends_on:
+        gateway_service:
+          condition: service_started
 
   gateway_service:
-    build: ./gateway_service
-    container_name: gateway_service
-    ports:
-      - "8080:8080"
-    environment:
-      USERS_SERVICE_URL: http://users_service:8000
-      MEDIA_SERVICE_URL: http://media_service:8001
-      SOCIAL_SERVICE_URL: http://social_feed_service:8002
-      COMMENTS_SERVICE_URL: http://comment_service:8003
-      CATALOG_SERVICE_URL: http://music_catalog_service:8004
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    depends_on:
-      kafka:
-        condition: service_healthy
-      users_service:
-        condition: service_started
-      media_service:
-        condition: service_started
-      social_feed_service:
-        condition: service_started
-      comment_service:
-        condition: service_started
-      music_catalog_service:
-        condition: service_started
-    networks:
-      - microservices_network
-    volumes:
-      - ./gateway_service:/app
-
-  frontend:
-    build: ./frontend
-    container_name: frontend
-    ports:
-      - "5173:5173"
-    networks:
-      - microservices_network
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # 🔥 КРИТИЧНО: изолирует node_modules образа от хоста
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
+      build: ./gateway_service
+      container_name: gateway_service
+      ports:
+        - "8080:8080"
+      environment:
+        USERS_SERVICE_URL: http://users_service:8000
+        MEDIA_SERVICE_URL: http://media_service:8001
+        SOCIAL_SERVICE_URL: http://social_feed_service:8002
+        COMMENTS_SERVICE_URL: http://comment_service:8003
+        CATALOG_SERVICE_URL: http://music_catalog_service:8004
+        KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+        SECRET_KEY: your-secret-key-change-in-production
+        ALGORITHM: HS256
+        ACCESS_TOKEN_EXPIRE_MINUTES: 30
+        REFRESH_TOKEN_EXPIRE_DAYS: 7
+      depends_on:
+        users_service:
+          condition: service_started
+        media_service:
+          condition: service_started
+        social_feed_service:
+          condition: service_started
+        comment_service:
+          condition: service_started
+        music_catalog_service:
+          condition: service_started
+      networks:
+        - microservices_network
+      volumes:
+        - ./gateway_service:/app
 
 networks:
   microservices_network:

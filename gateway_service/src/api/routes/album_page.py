@@ -23,7 +23,6 @@ router = APIRouter(prefix="/album", tags=["Album Page"])
 @router.get("/{album_id}")
 async def get_album_page(
         album_id: str,
-        current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
         music_client: MusicClient = Depends(get_music_client),
         users_client: UsersClient = Depends(get_users_client)
 ):
@@ -64,7 +63,7 @@ async def get_album_page(
     if published_at:
         try:
             if isinstance(published_at, str):
-                published_at_dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+                published_at_dt = datetime.fromisoformat(published_at.replace("+00:00", ""))
             else:
                 published_at_dt = published_at
             published_at_formatted = format_date_ru(published_at_dt)
@@ -90,13 +89,11 @@ async def get_album_page(
                 feats_info.append({
                     "id": feat_id,
                     "nickname": feat_user.get("user_nickname", "Пользователь"),
-                    "avatar_url": feat_user.get("user_avatar", "/static/default-avatar.png")
                 })
             except Exception:
                 feats_info.append({
                     "id": feat_id,
                     "nickname": "Пользователь",
-                    "avatar_url": "/static/default-avatar.png"
                 })
 
         enriched_tracks.append({
@@ -128,11 +125,6 @@ async def get_album_page(
             "tracks": enriched_tracks,
             "published_at": published_at_formatted,
             "published_at_raw": album_info.get("published_at")
-        },
-        "user": {
-            "id": str(current_user.id) if current_user else None,
-            "nickname": current_user.nickname if current_user else None,
-            "avatar_url": current_user.avatar_url if current_user else None,
         }
     }
 

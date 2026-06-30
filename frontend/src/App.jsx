@@ -1,4 +1,3 @@
-
 import Home from "./pages/Home";
 import Track from "./pages/Track";
 import Settings from "./pages/Settings";
@@ -19,70 +18,77 @@ import UploadTrack from "./pages/UploadTrack";
 import Premium from "./pages/Premium";
 import Register from "./pages/Register";
 import Chat from "./pages/Chat";
-
+import BottomPlayer from "./components/BottomPlayer";
 import CreateRelease from "./pages/CreateRelease";
+import Search from "./pages/Search"; // ← ИМПОРТ СТРАНИЦЫ ПОИСКА
+
 function App() {
   return (
     <>
-    <Navbar />
-    <Routes>
-      {/* Главная страница */}
-      <Route path="/" element={<Home />} />
+      <Navbar />
+      <BottomPlayer />
 
-      {/* Страница отдельного трека */}
-      <Route path="/track/:id" element={<Track />} />
+      <Routes>
+        {/* Главная страница */}
+        <Route path="/" element={<Home />} />
 
-      {/* Настройки пользователя */}
-      <Route path="/settings" element={<Settings />} />
+        {/* Страница отдельного трека */}
+        <Route path="/track/:id" element={<Track />} />
 
-      {/* Страница альбома */}
-      <Route path="/album/:id" element={<Album />} />
+        {/* Настройки пользователя */}
+        <Route path="/settings" element={<Settings />} />
 
-      {/* Страница плейлиста */}
-      <Route path="/playlist/:id" element={<Playlist />} />
+        {/* Страница альбома */}
+        <Route path="/album/:id" element={<Album />} />
 
-      {/* Список всех дискуссий */}
-      <Route path="/discussions" element={<Discussions />} />
+        {/* Страница плейлиста */}
+        <Route path="/playlist/:id" element={<Playlist />} />
 
-      {/* Конкретная дискуссия / тред */}
-      <Route path="/discussion/:id" element={<DiscussionThread />} />
+        {/* Список всех дискуссий */}
+        <Route path="/discussions" element={<Discussions />} />
 
-      {/* Каталог звуковых пакетов */}
-      <Route path="/soundpacks" element={<SoundPacks />} />
+        {/* Конкретная дискуссия / тред */}
+        <Route path="/discussion/:id" element={<DiscussionThread />} />
 
-      {/* Страница отдельного звукового пакета */}
-      <Route path="/soundpack/:id" element={<SoundPackPage />} />
+        {/* Каталог звуковых пакетов */}
+        <Route path="/soundpacks" element={<SoundPacks />} />
 
-      {/* Профиль пользователя */}
-      <Route path="/profile/:id" element={<Profile />} />
+        {/* Страница отдельного звукового пакета */}
+        <Route path="/soundpack/:id" element={<SoundPackPage />} />
 
-      {/* Страница оформления подписки */}
-      <Route path="/subscription" element={<Subscription />} />
+        {/* Профиль пользователя */}
+        <Route path="/profile/:id" element={<Profile />} />
 
-      {/* Уведомления */}
-      <Route path="/notifications" element={<Notifications />} />
+        {/* Страница оформления подписки */}
+        <Route path="/subscription" element={<Subscription />} />
 
-      {/* Страница входа */}
-      <Route path="/login" element={<Login />} />
+        {/* Уведомления */}
+        <Route path="/notifications" element={<Notifications />} />
 
-      {/* Страница редактирования профиля */}
-      <Route path="/profile/edit" element={<ProfileEdit />} />
+        {/* Страница входа */}
+        <Route path="/login" element={<Login />} />
 
-      {/* Загрузка трека */}
-      <Route path="/upload-track" element={<UploadTrack />} />
+        {/* Страница редактирования профиля */}
+        <Route path="/profile/edit" element={<ProfileEdit />} />
 
-      {/* Создание релиза (Сингл / EP / Альбом) */}
-      <Route path="/create-release" element={<CreateRelease />} />
+        {/* Загрузка трека */}
+        <Route path="/upload-track" element={<UploadTrack />} />
 
-      {/* Страница подписки */}
-      <Route path="/premium" element={<Premium />} />
+        {/* Создание релиза (Сингл / EP / Альбом) */}
+        <Route path="/create-release" element={<CreateRelease />} />
 
-      {/* Страница регистрации */}
-      <Route path="/register" element={<Register />} />
+        {/* Страница подписки */}
+        <Route path="/premium" element={<Premium />} />
 
-      {/* Чат / Сообщество */}
-      <Route path="/chat" element={<Chat />} />
-    </Routes>
+        {/* Страница регистрации */}
+        <Route path="/register" element={<Register />} />
+
+        {/* Чат / Сообщество */}
+        <Route path="/chat" element={<Chat />} />
+
+        {/* ===== СТРАНИЦА ПОИСКА ===== */}
+        <Route path="/search" element={<Search />} />
+      </Routes>
     </>
   );
 }

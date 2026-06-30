@@ -13,7 +13,7 @@ from src.api.dependencies import (
 from src.clients.music_service import MusicClient
 from src.clients.comments_service import CommentClient
 from src.clients.users_service import UsersClient
-from src.api.helpers.format_date import format_date_ru
+from src.api.helpers.format_date import parse_datetime, format_date_ru
 
 router = APIRouter(prefix="/track-page", tags=["Track Page"])
 
@@ -23,7 +23,6 @@ router = APIRouter(prefix="/track-page", tags=["Track Page"])
 @router.get("/{track_id}")
 async def get_track_page(
         track_id: str,
-        current_user: Optional[CurrentUser] = Depends(get_optional_current_user),
         music_client: MusicClient = Depends(get_music_client),
         users_client: UsersClient = Depends(get_users_client)
 ):
@@ -57,19 +56,39 @@ async def get_track_page(
                 "nickname": "Пользователь",
                 "avatar_url": "/static/default-avatar.png"
             }
+    track_feats = track_info.get("feats", [])
 
-    # 3. Форматируем дату публикации
+    feats_info = []
+    for feat_id in track_feats:
+        try:
+            feat_user = await users_client.get_user_info(feat_id)
+            feats_info.append({
+                "id": feat_id,
+                "nickname": feat_user.get("user_nickname", "Пользователь"),
+            })
+        except Exception:
+            feats_info.append({
+                "id": feat_id,
+                "nickname": "Пользователь",
+            })
     published_at = track_info.get("published_at")
-    published_at_formatted = None
     if published_at:
         try:
             if isinstance(published_at, str):
-                published_at_dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+                # Убираем Z и парсим
+                dt_str = published_at.replace("+00:00", "")
+                published_at_dt = datetime.fromisoformat(dt_str)
             else:
                 published_at_dt = published_at
+            
             published_at_formatted = format_date_ru(published_at_dt)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"⚠️ Ошибка форматирования даты: {e}")
+            # Если ошибка - ставим сегодня
+            published_at_formatted = "сегодня"
+    else:
+        # Если даты нет - ставим сегодня
+        published_at_formatted = "сегодня"
 
     # 4. Формируем ответ
     return {
@@ -78,7 +97,7 @@ async def get_track_page(
             "title": track_info.get("title"),
             "cover_url": track_info.get("cover_url"),
             "author": author_info,
-            "feats": track_info.get("feats", []),
+            "feats": feats_info,
             "track_url": track_info.get("track_url"),
             "track_text": track_info.get("track_text"),
             "bpm": track_info.get("bpm"),
@@ -88,12 +107,6 @@ async def get_track_page(
             "listening_quantity": track_info.get("listening_quantity", 0),
             "published_at": published_at_formatted,
             "published_at_raw": track_info.get("published_at")
-        },
-        "user": {
-            "id": str(current_user.id) if current_user else None,
-            "nickname": current_user.nickname if current_user else None,
-            "avatar_url": current_user.avatar_url if current_user else None,
-            "is_authenticated": current_user is not None
         }
     }
 

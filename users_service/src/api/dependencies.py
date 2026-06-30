@@ -1,10 +1,11 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 import redis
 from jose import JWTError, jwt
+import uuid
 
 from src.db.postgres_engine import get_async_session
 from src.models.users_models import Users
@@ -39,7 +40,6 @@ async def get_current_user(
 
     # Преобразуем строковый ID в UUID
     try:
-        import uuid
         user_uuid = uuid.UUID(user_id)
     except ValueError:
         raise HTTPException(
@@ -67,6 +67,46 @@ async def get_current_user(
     return user
 
 
+async def get_optional_current_user(
+        request: Request,
+        db: AsyncSession = Depends(get_async_session)
+) -> Optional[Users]:
+    """
+    Получает текущего пользователя, если он авторизован.
+    Если токен отсутствует или невалидный - возвращает None.
+    """
+    # Получаем Authorization header
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    
+    token = auth_header.replace("Bearer ", "")
+    payload = decode_token(token)
+    
+    if not payload or payload.get("type") != "access":
+        return None
+    
+    user_id = payload.get("user_id")
+    if not user_id:
+        return None
+    
+    # Преобразуем строковый ID в UUID
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        return None
+    
+    result = await db.execute(
+        select(Users).where(Users.id == user_uuid)
+    )
+    user = result.scalar_one_or_none()
+    
+    if not user or not user.is_active:
+        return None
+    
+    return user
+
+
 def decode_token(token: str) -> Optional[dict]:
     """Декодирует JWT токен с помощью jose"""
     try:
@@ -90,4 +130,4 @@ async def get_redis_client():
     try:
         yield redis_client
     finally:
-        redis_client.close()  # для sync Redis
+        redis_client.close()

@@ -5,7 +5,7 @@ from typing import Optional, List
 import uuid
 
 from src.db.postgres_engine import get_db
-from src.api.dependencies import get_current_user
+from src.api.dependencies import get_current_user, get_optional_current_user
 from src.api.schemas import UserResponse
 from src.models.users_models import Users, Followers, Friends, UserStatuses
 
@@ -26,13 +26,42 @@ async def get_me(
 @router.get("/get_user_info/{user_id}")
 async def get_user_info(
     user_id: uuid.UUID, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Users] = Depends(get_optional_current_user)
 ):
+    """Получение информации о пользователе с статусом подписки."""
     result = await db.execute(select(Users).where(Users.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Статус подписки
+    follow_status = "none"  # none, following, friend
+    
+    if current_user and current_user.id != user_id:
+        # Проверяем, подписан ли текущий пользователь
+        follow = await db.scalar(
+            select(Followers).where(
+                Followers.follower_id == current_user.id,
+                Followers.following_id == user_id
+            )
+        )
+        
+        if follow:
+            # Проверяем, есть ли взаимная подписка (друзья)
+            mutual_follow = await db.scalar(
+                select(Followers).where(
+                    Followers.follower_id == user_id,
+                    Followers.following_id == current_user.id
+                )
+            )
+            if mutual_follow:
+                follow_status = "friend"
+            else:
+                follow_status = "following"
+    
     return {
+        "user_id": str(user.id),
         "user_name": user.username,
         "user_nickname": user.nickname,
         "user_avatar": user.avatar_url,
@@ -41,23 +70,53 @@ async def get_user_info(
         "user_following_quantity": user.following_quantity,
         "user_friends_quantity": user.friends_quantity,
         "user_listening_quantity": user.listening_quantity,
-        "user_month_listening_quantity": user.month_listening_quantity
+        "user_month_listening_quantity": user.month_listening_quantity,
+        "follow_status": follow_status  # none | following | friend
     }
 
 
 @router.get("/get_user/{user_id}")
 async def get_user(
     user_id: uuid.UUID, 
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Users] = Depends(get_optional_current_user)
 ):
+    """Получение базовой информации о пользователе."""
     result = await db.execute(select(Users).where(Users.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Статус подписки
+    follow_status = "none"
+    
+    if current_user and current_user.id != user_id:
+        follow = await db.scalar(
+            select(Followers).where(
+                Followers.follower_id == current_user.id,
+                Followers.following_id == user_id
+            )
+        )
+        
+        if follow:
+            mutual_follow = await db.scalar(
+                select(Followers).where(
+                    Followers.follower_id == user_id,
+                    Followers.following_id == current_user.id
+                )
+            )
+            if mutual_follow:
+                follow_status = "friend"
+            else:
+                follow_status = "following"
+    
     return {
+        "user_id": str(user.id),
         "user_nickname": user.nickname,
         "user_avatar": user.avatar_url,
+        "follow_status": follow_status
     }
+
 
 
 @router.get("/get_user_status/{user_id}")
@@ -82,7 +141,15 @@ async def get_followers(
         .offset(skip).limit(limit)
     )
     followers = result.scalars().all()
-    return followers
+    return {
+        "followers": [
+            {
+                "follower_id": str(f.id),
+                "nickname": f.nickname,
+                "avatar_url": f.avatar_url
+            } for f in followers
+        ]
+    }
 
 
 @router.get("/following/{user_id}")
@@ -98,7 +165,16 @@ async def get_following(
         .offset(skip).limit(limit)
     )
     following = result.scalars().all()
-    return following
+    return {
+        "followings": [
+            {
+                "following_id": str(f.id),
+                "nickname": f.nickname,
+                "avatar_url": f.avatar_url
+            } for f in following
+        ]
+    }
+
 
 
 @router.get("/friends/{user_id}")

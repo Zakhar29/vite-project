@@ -194,7 +194,7 @@ async def get_similar_albums(
 
 @router.get("/recommendations")
 async def get_album_recommendations(
-        user_id: Optional[uuid.UUID] = Query(None, description="ID пользователя для персонализации"),
+        user_id: uuid.UUID | None = None,
         limit: int = Query(20, ge=1, le=100),
         db: AsyncSession = Depends(get_db)
 ):

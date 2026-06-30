@@ -30,7 +30,7 @@ async def search_tracks(
         bpm_min: Optional[float] = Query(None, ge=10, le=1000, description="Минимальный BPM"),
         bpm_max: Optional[float] = Query(None, ge=10, le=1000, description="Максимальный BPM"),
         sort_by: str = Query("relevance",
-                             pattern="^(relevance|created_at|liked_quantity|listening_quantity|bpm|title)$"),
+                             pattern="^(relevance|published_at|liked_quantity|listening_quantity|bpm|title)$"),
         sort_order: str = Query("desc", pattern="^(asc|desc)$"),
         skip: int = Query(0, ge=0),
         limit: int = Query(20, ge=1, le=100),
@@ -109,7 +109,7 @@ async def search_tracks(
 
 @router.get("/recommendations")
 async def get_track_recommendations(
-        user_id: Optional[uuid.UUID] = Query(None, description="ID пользователя для персонализации"),
+        user_id: uuid.UUID | None = None,
         limit: int = Query(20, ge=1, le=100),
         db: AsyncSession = Depends(get_db)
 ):
