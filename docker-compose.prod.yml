@@ -1,9 +1,239 @@
+# Production stack: docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+
+name: melo
+
+x-common-env: &common-env
+  SECRET_KEY: ${SECRET_KEY}
+
 services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: melo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-admin}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - melo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: melo_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - melo_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  minio:
+    image: minio/minio:latest
+    container_name: melo_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    networks:
+      - melo_network
+    command: server /data --console-address ":9001"
+
+  mongodb:
+    image: mongo:7
+    container_name: melo_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - melo_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  users_service:
+    build: ./users_service
+    container_name: melo_users_service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: melo_users
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - melo_network
+
+  media_service:
+    build: ./media_service
+    container_name: melo_media_service
+    restart: unless-stopped
+    environment:
+      MINIO_URL: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      CDN_DOMAIN: ${DOMAIN}
+      CDN_SCHEME: https
+      S3_DEFAULT_BUCKET: media
+    depends_on:
+      minio:
+        condition: service_started
+    networks:
+      - melo_network
+
+  social_feed_service:
+    build: ./social_feed_service
+    container_name: melo_social_feed_service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
+      MONGODB_DATABASE: melo_social
+      USERS_SERVICE_URL: http://users_service:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+    networks:
+      - melo_network
+
+  comment_service:
+    build: ./comment_service
+    container_name: melo_comment_service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
+      MONGODB_DATABASE: melo_comments
+      USERS_SERVICE_URL: http://users_service:8000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      users_service:
+        condition: service_started
+    networks:
+      - melo_network
+
+  music_catalog_service:
+    build: ./music_catalog_service
+    container_name: melo_music_catalog_service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: melo_tracks
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - melo_network
+
+  gateway_service:
+    build: ./gateway_service
+    container_name: melo_gateway_service
+    restart: unless-stopped
+    environment:
+      <<: *common-env
+      USERS_SERVICE_URL: http://users_service:8000
+      MEDIA_SERVICE_URL: http://media_service:8001
+      SOCIAL_SERVICE_URL: http://social_feed_service:8002
+      COMMENTS_SERVICE_URL: http://comment_service:8003
+      CATALOG_SERVICE_URL: http://music_catalog_service:8004
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+    depends_on:
+      users_service:
+        condition: service_started
+      media_service:
+        condition: service_started
+      social_feed_service:
+        condition: service_started
+      comment_service:
+        condition: service_started
+      music_catalog_service:
+        condition: service_started
+    networks:
+      - melo_network
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    container_name: frontend_prod
+      args:
+        VITE_API_URL: https://${DOMAIN}
+    container_name: melo_frontend
+    restart: unless-stopped
+    networks:
+      - melo_network
+    depends_on:
+      gateway_service:
+        condition: service_started
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: melo_caddy
+    restart: unless-stopped
     ports:
       - "80:80"
-    restart: unless-stopped
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - melo_network
+    depends_on:
+      frontend:
+        condition: service_started
+      gateway_service:
+        condition: service_started
+      minio:
+        condition: service_started
+
+networks:
+  melo_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  mongo_data:
+  caddy_data:
+  caddy_config:

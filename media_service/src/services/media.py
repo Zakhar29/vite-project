@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from config import MediaType, MediaPath
 
@@ -7,13 +8,20 @@ class MediaService:
         self.client = minio_client
         self.cdn_domain = cdn_domain
 
+    def _public_url(self, bucket: str, key: str) -> str:
+        base = self.cdn_domain.rstrip("/")
+        if base.startswith("http://") or base.startswith("https://"):
+            return f"{base}/{bucket}/{key}"
+        scheme = os.getenv("CDN_SCHEME", "https")
+        return f"{scheme}://{base}/{bucket}/{key}"
+
     def get_track_path(self, album_id: str, track_number: int, format: str = "aac") -> MediaPath:
         """Путь для трека"""
         key = f"albums/{album_id}/track_{track_number}.{format}"
         return MediaPath(
             bucket=MediaType.TRACK.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.TRACK.value}/{key}"
+            url=self._public_url(MediaType.TRACK.value, key),
         )
 
     def get_album_cover_path(self, album_id: str, size: str) -> MediaPath:
@@ -22,7 +30,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.COVER.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.COVER.value}/{key}"
+            url=self._public_url(MediaType.COVER.value, key),
         )
 
     def get_avatar_path(self, user_id: str, size: str) -> MediaPath:
@@ -32,7 +40,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.AVATAR.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.AVATAR.value}/{key}"
+            url=self._public_url(MediaType.AVATAR.value, key),
         )
 
     def get_chat_image_path(self, chat_id: str, message_id: str, image_name: str, format: str = "avif") -> MediaPath:
@@ -41,7 +49,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.CHAT_IMAGE.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.CHAT_IMAGE.value}/{key}",
+            url=self._public_url(MediaType.CHAT_IMAGE.value, key),
         )
 
     def get_chat_video_path(self, chat_id: str, message_id: str, video_name: str, format: str = "mp4") -> MediaPath:
@@ -50,7 +58,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.CHAT_VIDEO.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.CHAT_VIDEO.value}/{key}",
+            url=self._public_url(MediaType.CHAT_VIDEO.value, key),
         )
 
     def get_chat_audio_message_path(self, chat_id: str, message_id: str, format: str = "ogg") -> MediaPath:
@@ -59,7 +67,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.CHAT_AUDIO.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.CHAT_AUDIO.value}/{key}",
+            url=self._public_url(MediaType.CHAT_AUDIO.value, key),
         )
 
     def get_post_image_path(self, post_id: str, image_name: str, format: str = "avif") -> MediaPath:
@@ -68,7 +76,7 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.IMAGE.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.IMAGE.value}/{key}",
+            url=self._public_url(MediaType.IMAGE.value, key),
         )
 
     def get_post_video_path(self, post_id: str, video_name: str, format: str = "mp4") -> MediaPath:
@@ -77,5 +85,5 @@ class MediaService:
         return MediaPath(
             bucket=MediaType.VIDEO.value,
             key=key,
-            url=f"http://{self.cdn_domain}/{MediaType.VIDEO.value}/{key}",
+            url=self._public_url(MediaType.VIDEO.value, key),
         )

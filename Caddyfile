@@ -1,0 +1,20 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	handle /api/* {
+		reverse_proxy gateway_service:8080
+	}
+
+	@minio path /media-music/* /avatars/* /covers/* /media-images/* /media-videos/* /chat-audio/* /chat-images/* /chat-videos/*
+	handle @minio {
+		reverse_proxy minio:9000
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
+}

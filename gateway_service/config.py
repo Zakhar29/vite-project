@@ -15,7 +15,7 @@ class Settings:
     KAFKA_CLIENT_ID = "my-producer-id"
     # Таймауты
     REQUEST_TIMEOUT = 30.0
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
     ALGORITHM: str = "HS256"
     # Токены
 
