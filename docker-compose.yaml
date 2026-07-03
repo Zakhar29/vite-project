@@ -135,6 +135,7 @@ services:
     container_name: comment_service
     ports:
       - "8003:8003"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
     environment:
       MONGODB_URL: mongodb://admin:postgres@mongodb:27017/?authSource=admin
       MONGODB_DATABASE: melo_comments
@@ -192,6 +193,7 @@ services:
       container_name: gateway_service
       ports:
         - "8080:8080"
+      command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
       environment:
         USERS_SERVICE_URL: http://users_service:8000
         MEDIA_SERVICE_URL: http://media_service:8001

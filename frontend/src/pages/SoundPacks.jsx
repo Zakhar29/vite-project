@@ -4,6 +4,7 @@ import "../styles/soundpacks.css";
 function SoundPacks() {
   return (
     <div className="soundpacks-page">
+      <div className="soundpacks-page__inner">
 
       {/* HERO */}
       <div className="soundpacks-hero">
@@ -54,6 +55,7 @@ function SoundPacks() {
 
       </div>
 
+      </div>
     </div>
   );
 }

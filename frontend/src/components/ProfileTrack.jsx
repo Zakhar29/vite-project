@@ -1,57 +1,55 @@
-// components/ProfileTrack.jsx
 import { useState } from "react";
 import "../styles/profileTrack.css";
 
-// ========== Конфигурация API ==========
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+function formatDuration(value) {
+  if (!value) return "0:00";
+  if (typeof value === "string" && value.includes(":")) return value;
+
+  const total = Math.floor(Number(value) || 0);
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
 
 function ProfileTrack({ track, onClick }) {
   const token = localStorage.getItem("access_token");
   const [isLiked, setIsLiked] = useState(track?.is_liked || false);
-  const [likesCount, setLikesCount] = useState(track?.liked_quantity || 0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // ========== Если track не передан ==========
   if (!track) {
     return (
-      <div className="profile-track neon-track">
-        <p className="track-empty">Трек не найден</p>
+      <div className="profile-track-card profile-track-card--empty">
+        <p>Трек не найден</p>
       </div>
     );
   }
 
-  // ========== Безопасное получение данных ==========
   const trackId = track.track_id || track.id;
-  const title = track.title || 'Без названия';
-  const coverUrl = track.cover_url || '/default-cover.jpg';
-  
-  // ===== ИСПРАВЛЕНО: правильное получение имени автора =====
-  const artistName = track.author?.nickname || track.author_nickname || 'Неизвестный автор';
+  const title = track.title || "Без названия";
+  const coverUrl = track.cover_url || "/default-cover.jpg";
+  const artistName = track.author?.nickname || track.author_nickname || "Неизвестный автор";
   const authorId = track.author?.id || track.author_id;
-  
-  const bpm = track.bpm || 0;
-  const listeningQuantity = track.listening_quantity || 0;
-  const commentsQuantity = track.comments_quantity || 0;
-  const trackUrl = track.track_url || '';
-  const year = track.published_at_formatted;
+  const trackUrl = track.track_url || "";
+  const duration = formatDuration(track.duration);
 
-  // ========== Обработчик воспроизведения ==========
   const handlePlay = (e) => {
     e.stopPropagation();
     if (!trackUrl) {
-      alert('У этого трека нет аудиофайла');
+      alert("У этого трека нет аудиофайла");
       return;
     }
 
     const trackData = {
       track_id: trackId,
-      title: title,
+      title,
       track_url: trackUrl,
       cover_url: coverUrl,
       author_id: authorId,
       author_nickname: artistName,
-      bpm: bpm,
-      duration: track.duration
+      bpm: track.bpm,
+      duration: track.duration,
     };
 
     localStorage.setItem("currentTrack", JSON.stringify(trackData));
@@ -59,86 +57,93 @@ function ProfileTrack({ track, onClick }) {
     setIsPlaying(true);
   };
 
-  // ========== Обработчик лайка ==========
   const handleLike = async (e) => {
     e.stopPropagation();
     if (!token) {
-      alert('Войдите, чтобы оценить трек');
+      alert("Войдите, чтобы оценить трек");
       return;
     }
 
     try {
-      const url = `${API_URL}/api/v1/social/track/${trackId}/${isLiked ? 'unlike' : 'like'}`;
+      const url = `${API_URL}/api/v1/social/track/${trackId}/${isLiked ? "unlike" : "like"}`;
       const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         setIsLiked(!isLiked);
-        setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
       }
     } catch (err) {
-      console.error('Ошибка лайка:', err);
+      console.error("Ошибка лайка:", err);
     }
   };
 
-  // ========== Обработчик клика ==========
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
+  const handleShare = (e) => {
+    e.stopPropagation();
+    const url = `${window.location.origin}/track/${trackId}`;
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url);
     }
   };
-
-  // ========== Рендер ==========
 
   return (
-    <div className="profile-track" onClick={handleClick}>
-      <div className="track-left">
-        <img
-          src={coverUrl}
-          alt={title}
-          className="track-cover"
-          onError={(e) => e.target.src = '/default-cover.jpg'}
-        />
-        <div className="track-info">
-          <h3 className="track-title">{title}</h3>
-          <span className="track-artist">{artistName}</span>
-        </div>
-      </div>
+    <article className="profile-track-card" onClick={onClick}>
+      <div className="profile-track-card__content">
+        <div className="profile-track-card__left">
+          <h3 className="profile-track-card__title">{title}</h3>
+          <p className="profile-track-card__artist">{artistName}</p>
 
-      <div className="track-center">
-        {bpm > 0 && (
-          <span className="track-bpm">{bpm} BPM</span>
-        )}
-        <span className="track-year">{year}</span>
-      </div>
+          <div className="profile-track-card__controls">
+            <button
+              type="button"
+              className={`profile-track-card__btn profile-track-card__btn--play ${isPlaying ? "is-playing" : ""}`}
+              onClick={handlePlay}
+              aria-label="Воспроизвести"
+            >
+              ▶
+            </button>
+            <button
+              type="button"
+              className={`profile-track-card__btn ${isLiked ? "is-liked" : ""}`}
+              onClick={handleLike}
+              aria-label="Нравится"
+            >
+              {isLiked ? "♥" : "♡"}
+            </button>
+            <button
+              type="button"
+              className="profile-track-card__btn"
+              onClick={handleShare}
+              aria-label="Поделиться"
+            >
+              ↗
+            </button>
+          </div>
 
-      <div className="track-right">
-        <div className="track-stats">
-          <span className="stat-item">🎧 {listeningQuantity}</span>
-          <span className="stat-item">💬 {commentsQuantity}</span>
+          <div className="profile-track-card__progress">
+            <span>00:00</span>
+            <div className="profile-track-card__progress-bar">
+              <div className="profile-track-card__progress-fill" />
+            </div>
+            <span>{duration}</span>
+          </div>
         </div>
-        <div className="track-controls">
-          <button 
-            className="control-btn play-btn" 
-            onClick={handlePlay}
-            title="Воспроизвести"
-          >
-            ▶
-          </button>
-          <button 
-            className={`control-btn like-btn ${isLiked ? 'liked' : ''}`}
-            onClick={handleLike}
-            title={isLiked ? 'Убрать лайк' : 'Лайк'}
-          >
-            {isLiked ? '❤️' : '♡'} {likesCount}
-          </button>
+
+        <div className="profile-track-card__cover">
+          <img
+            src={coverUrl}
+            alt={title}
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.src = "/default-cover.jpg";
+            }}
+          />
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 

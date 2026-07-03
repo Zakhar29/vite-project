@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import Avatar from "../components/Avatar";
+import { formatCommentsLabel } from "../utils/formatComments";
 import "../styles/search.css";
 
 // ========== Конфигурация API ==========
@@ -261,7 +263,7 @@ function Search() {
               <div className="result-grid users-grid">
                 {results.users.items.map(user => (
                   <div key={user.id} className="user-result" onClick={() => navigate(`/profile/${user.id}`)}>
-                    <img src={user.avatar_url || '/default-avatar.png'} alt={user.nickname} />
+                    <Avatar src={user.avatar_url} alt={user.nickname} />
                     <span>{user.nickname}</span>
                   </div>
                 ))}
@@ -336,7 +338,7 @@ function Search() {
           <div className="users-list">
             {items.map(user => (
               <div key={user.id} className="user-result-item" onClick={() => navigate(`/profile/${user.id}`)}>
-                <img src={user.avatar_url || '/default-avatar.png'} alt={user.nickname} />
+                <Avatar src={user.avatar_url} alt={user.nickname} />
                 <div>
                   <div className="name">{user.nickname}</div>
                   <div className="sub">{user.email || ''}</div>
@@ -386,7 +388,7 @@ function Search() {
                     <span>{post.author_nickname || 'Пользователь'}</span>
                     <span>{post.created_at_formatted || ''}</span>
                     <span>❤️ {post.likes_quantity || 0}</span>
-                    <span>💬 {post.comments_quantity || 0}</span>
+                    <span>💬 {formatCommentsLabel(post.comments_quantity)}</span>
                   </div>
                 </div>
               </div>
@@ -525,6 +527,7 @@ function Search() {
 
   return (
     <div className="search-page">
+      <div className="search-page__inner">
       <div className="search-container">
         {/* Поисковая строка */}
         <div className="search-header">
@@ -598,6 +601,7 @@ function Search() {
 
           {!loading && renderResults()}
         </div>
+      </div>
       </div>
     </div>
   );

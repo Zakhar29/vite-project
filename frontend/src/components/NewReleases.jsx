@@ -62,8 +62,8 @@ function NewReleases() {
     return (
       <section className="new-section">
         <div className="new-header">
-          <SectionTitle title="Новинки" />
-          <a href="#" className="view-all">Посмотреть всё →</a>
+          <SectionTitle title="Новинки" subtitle="Следите за последними треками" />
+          <a href="/search" className="view-all">Посмотреть все →</a>
         </div>
         <div className="new-grid">
           {[...Array(8)].map((_, i) => (
@@ -82,8 +82,8 @@ function NewReleases() {
     return (
       <section className="new-section">
         <div className="new-header">
-          <SectionTitle title="Новинки" />
-          <a href="#" className="view-all">Посмотреть всё →</a>
+          <SectionTitle title="Новинки" subtitle="Следите за последними треками" />
+          <a href="/search" className="view-all">Посмотреть все →</a>
         </div>
         <div className="error-message">
           <p>{error}</p>
@@ -96,12 +96,12 @@ function NewReleases() {
   return (
     <section className="new-section">
       <div className="new-header">
-        <SectionTitle title="Новинки" />
-        <a href="/new-releases" className="view-all">Посмотреть всё →</a>
+        <SectionTitle title="Новинки" subtitle="Следите за последними треками" />
+        <a href="/search" className="view-all">Посмотреть все →</a>
       </div>
 
       <div className="new-grid">
-        {items.map((item) => (
+        {items.slice(0, 8).map((item) => (
           <MusicCard
             key={item.id}
             item={item}

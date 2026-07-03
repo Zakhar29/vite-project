@@ -1,10 +1,46 @@
 .hot-section {
-  padding: 0 60px;
+  padding: 8px 0 40px;
+}
+
+.hot-section__header {
+  margin-bottom: 20px;
 }
 
 .hot-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
+.hot-empty,
+.hot-error {
+  padding: 32px;
+  border-radius: 16px;
+  background: #171a1f;
+  color: #a1a1aa;
+  text-align: center;
+}
+
+.hot-empty-sub {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.discussion-card-skeleton {
+  min-height: 160px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #171a1f 25%, #1f2430 50%, #171a1f 75%);
+  background-size: 200% 100%;
+  animation: hot-shimmer 1.4s infinite;
+}
+
+@keyframes hot-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 900px) {
+  .hot-grid {
+    grid-template-columns: 1fr;
+  }
+}

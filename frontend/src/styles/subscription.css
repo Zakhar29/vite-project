@@ -1,98 +1,129 @@
-.subscription-page{
-min-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:#000000FF;
-color:white;
+.subscription-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 40px 20px 110px;
 }
 
-.subscription-container{
-width:500px;
-background:#111827;
-padding:40px;
-border-radius:14px;
+.subscription-container {
+  width: 100%;
+  max-width: 500px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 40px;
+  border-radius: var(--radius-lg);
 }
 
-.subtitle{
-color:#9ca3af;
-margin-bottom:25px;
+.subscription-container h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
-.payment-methods{
-display:flex;
-gap:15px;
-margin-bottom:25px;
+.subtitle {
+  color: var(--color-text-secondary);
+  margin-bottom: 25px;
 }
 
-.method{
-flex:1;
-border:1px solid #374151;
-padding:15px;
-text-align:center;
-border-radius:10px;
-cursor:pointer;
+.payment-methods {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
 }
 
-.method.active{
-border:1px solid #3b82f6;
-background:#1f2937;
+.method {
+  flex: 1;
+  border: 1px solid var(--color-border-strong);
+  padding: 15px;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
 }
 
-.card-form label{
-display:block;
-margin-top:15px;
-margin-bottom:5px;
+.method.active {
+  border-color: var(--color-primary);
+  background: rgba(82, 85, 244, 0.1);
+  color: var(--color-text);
 }
 
-.card-form input{
-width:100%;
-padding:10px;
-background:black;
-border:1px solid #374151;
-border-radius:6px;
-color:white;
+.card-form label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
 }
 
-.card-row{
-display:flex;
-gap:15px;
+.card-form input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  color: var(--color-text);
 }
 
-.subscription-footer{
-margin-top:30px;
+.card-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
-.total{
-display:flex;
-justify-content:space-between;
-font-size:20px;
-margin-bottom:20px;
+.card-row {
+  display: flex;
+  gap: 15px;
 }
 
-.total b{
-color:#60a5fa;
+.subscription-footer {
+  margin-top: 30px;
 }
 
-.buttons{
-display:flex;
-gap:15px;
+.total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+  margin-bottom: 20px;
 }
 
-.cancel{
-flex:1;
-background:black;
-border:1px solid #374151;
-padding:12px;
-border-radius:8px;
-color:white;
+.total b {
+  color: var(--color-accent-light);
 }
 
-.pay{
-flex:1;
-background:#3b82f6;
-border:none;
-padding:12px;
-border-radius:8px;
-color:white;
+.buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.cancel {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.cancel:hover {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.pay {
+  flex: 1;
+  background: var(--color-primary);
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pay:hover {
+  background: var(--color-primary-hover);
 }

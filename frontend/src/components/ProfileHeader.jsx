@@ -1,21 +1,22 @@
-// components/ProfileHeader.jsx
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import Avatar from "./Avatar";
 import UserListModal from "./UserListModal";
 
-function ProfileHeader({ user, isMyProfile }) {
+function ProfileHeader({
+  user,
+  isMyProfile,
+  isFollowing,
+  onFollow,
+}) {
   const [isUserListModalOpen, setIsUserListModalOpen] = useState(false);
   const [userListModalType, setUserListModalType] = useState(null);
 
-  // Если user передан — используем его, иначе заглушки
-  const avatar = user?.avatar_url || "https://i.pravatar.cc/100";
   const nickname = user?.nickname || "Пользователь";
   const username = user?.username || "";
   const bio = user?.bio || "Музыкант и продюсер";
   const followerQuantity = user?.follower_quantity || 0;
   const followingQuantity = user?.following_quantity || 0;
-  const friendsQuantity = user?.friends_quantity || 0;
-  const listeningQuantity = user?.listening_quantity || 0;
-  const monthListeningQuantity = user?.month_listening_quantity || 0;
 
   const openModal = (type) => {
     setUserListModalType(type);
@@ -29,80 +30,83 @@ function ProfileHeader({ user, isMyProfile }) {
 
   return (
     <>
-      <div className="profile-header">
-
-        <div className="profile-left">
-
-          <img
-            src={avatar}
-            className="profile-avatar"
+      <section className="profile-header">
+        <div className="profile-header__main">
+          <Avatar
+            src={user?.avatar_url}
+            className="profile-header__avatar"
             alt={nickname}
-            onError={(e) => e.target.src = 'https://i.pravatar.cc/100'}
           />
 
-          <div>
-            <h1>{nickname}</h1>
-            {username && <p className="profile-username">@{username}</p>}
-
-            <div className="text_prof">
-              <p>{bio}</p>
-            </div>
+          <div className="profile-header__info">
+            <h1 className="profile-header__name">{nickname}</h1>
+            {username && (
+              <p className="profile-header__username">@{username}</p>
+            )}
+            <p className="profile-header__bio">{bio}</p>
           </div>
-
         </div>
 
-        <div className="profile-right">
-
-          <div className="profile-stats">
-            <div 
-              className="stat-item clickable"
-              onClick={() => openModal('followers')}
+        <div className="profile-header__aside">
+          <div className="profile-header__stats">
+            <button
+              type="button"
+              className="profile-header__stat"
+              onClick={() => openModal("followers")}
             >
-              <span className="count blue">{followerQuantity}</span>
-              <p>Подписчиков</p>
-            </div>
+              <span className="profile-header__stat-value">{followerQuantity}</span>
+              <span className="profile-header__stat-label">Подписчиков</span>
+            </button>
 
-            <div 
-              className="stat-item clickable"
-              onClick={() => openModal('following')}
+            <button
+              type="button"
+              className="profile-header__stat"
+              onClick={() => openModal("following")}
             >
-              <span className="count purple">{followingQuantity}</span>
-              <p>Подписок</p>
-            </div>
-
-            <div 
-              className="stat-item clickable"
-              onClick={() => openModal('friends')}
-            >
-              <span className="count green">{friendsQuantity}</span>
-              <p>Друзей</p>
-            </div>
-
-            <div>
-              <span className="count orange">{listeningQuantity}</span>
-              <p>Количество прослушиваний</p>
-            </div>
-
-            <div>
-              <span className="count pink">{monthListeningQuantity}</span>
-              <p>Прослушивания за месяц</p>
-            </div>
+              <span className="profile-header__stat-value">{followingQuantity}</span>
+              <span className="profile-header__stat-label">Подписок</span>
+            </button>
           </div>
 
+          <div className="profile-header__actions">
+            {isMyProfile ? (
+              <>
+                <Link to="/settings" className="profile-header__btn profile-header__btn--ghost">
+                  Настройки
+                </Link>
+                <Link to="/profile/edit" className="profile-header__btn profile-header__btn--ghost">
+                  Редактировать
+                </Link>
+                <Link to="/create-release" className="profile-header__btn profile-header__btn--primary">
+                  Создать релиз
+                </Link>
+              </>
+            ) : (
+              <button
+                type="button"
+                className={`profile-header__btn profile-header__btn--primary ${isFollowing ? "is-following" : ""}`}
+                onClick={onFollow}
+              >
+                {isFollowing ? "Отписаться" : "Подписаться"}
+              </button>
+            )}
+          </div>
         </div>
+      </section>
 
-      </div>
-
-      {/* ===== МОДАЛКА СПИСКА ПОЛЬЗОВАТЕЛЕЙ ===== */}
       <UserListModal
         isOpen={isUserListModalOpen}
         onClose={closeModal}
         userId={user?.id}
         type={userListModalType}
         title={
-          userListModalType === 'friends' ? 'Друзья' :
-          userListModalType === 'followers' ? 'Подписчики' :
-          userListModalType === 'following' ? 'Подписки' : ''
+          userListModalType === "friends"
+            ? "Друзья"
+            : userListModalType === "followers"
+              ? "Подписчики"
+              : userListModalType === "following"
+                ? "Подписки"
+                : ""
         }
       />
     </>

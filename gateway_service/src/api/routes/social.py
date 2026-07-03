@@ -12,7 +12,7 @@ from src.api.dependencies import (
     get_comment_client,
     get_social_client
 )
-from src.api.schemas import PostCommentCreate, PostCommentUpdate
+from src.api.schemas import PostCommentCreate, PostCommentUpdate, CommentReplyCreate
 from src.clients.music_service import MusicClient
 from src.clients.comments_service import CommentClient
 from src.clients.social_feed_service import SocialClient
@@ -160,6 +160,42 @@ async def delete_post_comment(
 
     return {
         "message": "Comment deleted successfully"
+    }
+
+
+@router.post("/posts/{post_id}/comment/{comment_id}/reply", status_code=201)
+async def reply_to_post_comment(
+        request: Request,
+        post_id: str,
+        comment_id: str,
+        data: CommentReplyCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        social_client: SocialClient = Depends(get_social_client),
+        comment_client: CommentClient = Depends(get_comment_client)
+):
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authorization token")
+
+    post = await social_client.get_post(post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    try:
+        comment_result = await comment_client.reply_to_post_comment(
+            post_id=post_id,
+            comment_id=comment_id,
+            comment=data.comment,
+            token=token,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create reply: {str(e)}")
+
+    return {
+        "message": "Reply created successfully",
+        "comment": comment_result
     }
 
 

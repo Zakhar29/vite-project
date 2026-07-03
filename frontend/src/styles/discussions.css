@@ -1,126 +1,269 @@
-.discussions-page{
-  padding:40px;
-  background:#020617;
-  color:white;
-  min-height:100vh;
+.discussions-page {
+  background: #000000;
+  color: #ffffff;
+  min-height: calc(100vh - 72px);
+  padding-bottom: 80px;
 }
 
-/* HERO */
-
-.discussion-hero{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:40px;
-  border-radius:14px;
-  background:linear-gradient(90deg,#0f2a44,#40124c);
+.discussions-page__inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 48px 0;
 }
 
-.hero-text{
-  max-width:500px;
-  
-}
+/* Hero */
 
-.hero-text h1{
-  font-size:28px;
-  margin-bottom:15px;
-}
-
-.hero-text p{
-  margin-bottom:20px;
-  color:#cbd5e1;
-}
-
-.hero-text button{
-  background:#3b82f6;
-  border:none;
-  padding:10px 20px;
-  border-radius:6px;
-  color:white;
-}
-
-/* MAIN */
-
-.discussion-content{
-  display:flex;
-  margin-top:40px;
-  gap:40px;
-}
-
-/* SIDEBAR */
-
-.genre-sidebar{
-  width:220px;
-  background:#111827;
-  padding:20px;
-  border-radius:10px;
-}
-
-.genre-sidebar ul{
-  list-style:none;
-  padding:0;
-}
-
-.genre-sidebar li{
-  margin:10px 0;
-  cursor:pointer;
-}
-
-/* DISCUSSION CARD */
-
-.discussion-list{
-  flex:1;
-}
-
-.discussion-card{
-  display:flex;
-  gap:20px;
-  background:#111827;
-  padding:20px;
-  border-radius:10px;
-  margin-top:20px;
-}
-
-.discussion-votes{
-  text-align:center;
-  font-weight:bold;
-}
-
-.discussion-body img{
-  width:100%;
-  margin-top:10px;
-  border-radius:6px;
-}
-
-.discussion-actions{
-  margin-top:10px;
-  display:flex;
-  gap:20px;
-  color:#9ca3af;
-}
-
-.discussion-hero img{
-  width: 600px;
-  height: 500px;
-}
-
-.discussion-list-header {
-  display: flex;
-  justify-content: space-between;
+.discussion-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 32px;
   align-items: center;
+  padding: 40px 44px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #0f1f35 0%, #2a1240 55%, #1a1030 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 40px;
+}
+
+.discussion-hero__text h1 {
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.25;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.discussion-hero__text p {
+  color: #d4d4d8;
+  line-height: 1.65;
+  font-size: 15px;
+  margin-bottom: 24px;
+  max-width: 620px;
+}
+
+.discussion-hero__cta {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 10px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.discussion-hero__cta:hover {
+  background: #2563eb;
+}
+
+.discussion-hero__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.discussion-hero__wave {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1.2;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(251, 146, 60, 0.35), transparent 55%),
+    linear-gradient(180deg, #1a1a2e 0%, #0d0d14 100%);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.discussion-hero__wave::before {
+  content: "";
+  position: absolute;
+  inset: 28% 12% auto;
+  height: 80px;
+  background:
+    linear-gradient(90deg, transparent, #fb923c 20%, #f97316 50%, #fb923c 80%, transparent);
+  border-radius: 40px;
+  filter: blur(1px);
+  opacity: 0.9;
+}
+
+.discussion-hero__wave::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 18%;
+  height: 48px;
+  background: #111827;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Layout */
+
+.discussion-content {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.discussion-list__title {
+  font-size: 28px;
+  font-weight: 700;
   margin-bottom: 20px;
 }
 
-.add-post-btn {
-  background: #8b5cf6;
-  color: white;
-  border: none;
+.discussion-list {
+  min-width: 0;
+}
+
+.discussion-list__empty,
+.discussion-list__error {
+  padding: 40px;
+  text-align: center;
+  color: #a1a1aa;
+  background: #171a1f;
+  border-radius: 16px;
+}
+
+.discussion-list__error button,
+.discussion-list__empty button {
+  margin-top: 12px;
   padding: 10px 18px;
+  border: none;
   border-radius: 8px;
-  font-size: 15px;
+  background: #5255f4;
+  color: #fff;
   cursor: pointer;
 }
 
-.add-post-btn:hover {
-  background: #7c3aed;
+.loading-more,
+.no-more-posts {
+  text-align: center;
+  padding: 20px;
+  color: #71717a;
+  font-size: 14px;
+}
+
+/* Sidebar */
+
+.genre-sidebar {
+  background: #171a1f;
+  border-radius: 16px;
+  padding: 22px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  position: sticky;
+  top: 88px;
+}
+
+.genre-sidebar__title {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #71717a;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.genre-sidebar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+
+.genre-sidebar__item,
+.genre-sidebar__filter {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #d4d4d8;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.genre-sidebar__item:hover,
+.genre-sidebar__filter:hover,
+.genre-sidebar__item.active,
+.genre-sidebar__filter.active {
+  background: rgba(82, 85, 244, 0.12);
+  color: #fff;
+}
+
+.genre-sidebar__item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.genre-sidebar__icon {
+  width: 18px;
+  text-align: center;
+}
+
+.genre-sidebar__chevron {
+  color: #52525b;
+  font-size: 16px;
+}
+
+.genre-sidebar__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.genre-sidebar__filter {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+/* Skeleton */
+
+.post-skeleton {
+  background: #171a1f;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+  min-height: 180px;
+  animation: discussions-shimmer 1.4s infinite linear;
+  background-image: linear-gradient(90deg, #171a1f 25%, #222733 50%, #171a1f 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes discussions-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (max-width: 1100px) {
+  .discussions-page__inner {
+    padding: 24px 20px 0;
+  }
+
+  .discussion-hero {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+  }
+
+  .discussion-hero__visual {
+    min-height: 160px;
+  }
+
+  .discussion-content {
+    grid-template-columns: 1fr;
+  }
+
+  .genre-sidebar {
+    position: static;
+  }
 }

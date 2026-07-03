@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import Avatar from "./Avatar";
 import "../styles/discussionCard.css";
 
 // ========== Конфигурация API ==========
@@ -85,7 +86,7 @@ function DiscussionCardd({ post, onLike, onUnlike, onDelete }) {
       const commentAuthor = {
         id: currentUser?.id || 'me',
         nickname: currentUser?.nickname || 'Вы',
-        avatar_url: currentUser?.avatar_url || '/default-avatar.png'
+        avatar_url: currentUser?.avatar_url
       };
 
       const newComment = {
@@ -186,8 +187,8 @@ function DiscussionCardd({ post, onLike, onUnlike, onDelete }) {
           <div className="meta-left">
             {post.author && (
               <Link to={`/user/${post.author.id}`} className="author-link">
-                <img
-                  src={post.author.avatar_url || '/default-avatar.png'}
+                <Avatar
+                  src={post.author.avatar_url}
                   alt={post.author.nickname}
                   className="author-avatar-small"
                 />
@@ -280,8 +281,8 @@ function DiscussionCardd({ post, onLike, onUnlike, onDelete }) {
                 ) : (
                   comments.map((comment) => (
                     <div key={comment.id} className="comment-item">
-                      <img
-                        src={comment.author?.avatar_url || '/default-avatar.png'}
+                      <Avatar
+                        src={comment.author?.avatar_url}
                         alt={comment.author?.nickname}
                         className="comment-avatar"
                       />

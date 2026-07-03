@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import Avatar from "../components/Avatar";
+import {
+  getStoredTheme,
+  getThemeLabel,
+  getThemeIdByLabel,
+  setTheme,
+  THEME_OPTIONS,
+} from "../utils/theme";
 import "../styles/settings.css";
 
 // ========== Конфигурация API ==========
@@ -10,7 +18,7 @@ function Settings() {
   const [user, setUser] = useState(null);
   const [settings, setSettings] = useState({
     language: "Русский",
-    theme: "Стандартная",
+    theme: getThemeLabel(getStoredTheme()),
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,9 +77,12 @@ function Settings() {
 
   // ========== Обновление настроек ==========
 
-  const handleSettingChange = async (key, value) => {
+  const handleSettingChange = (key, value) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-    // TODO: Отправить изменения на сервер
+
+    if (key === "theme") {
+      setTheme(getThemeIdByLabel(value));
+    }
   };
 
   // ========== Навигация ==========
@@ -126,8 +137,8 @@ function Settings() {
 
         {/* Профиль пользователя */}
         <div className="settings-profile">
-          <img
-            src={user.avatar_url || "/default-avatar.png"}
+          <Avatar
+            src={user.avatar_url}
             alt={user.nickname}
             className="settings-avatar"
           />
@@ -187,9 +198,11 @@ function Settings() {
               value={settings.theme}
               onChange={(e) => handleSettingChange("theme", e.target.value)}
             >
-              <option value="Стандартная">Стандартная</option>
-              <option value="Тёмная">Тёмная</option>
-              <option value="Светлая">Светлая</option>
+              {THEME_OPTIONS.map((theme) => (
+                <option key={theme.id} value={theme.label}>
+                  {theme.label}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -1,484 +1,362 @@
-/* styles/bottomPlayer.css */
-
-/* ===== Базовый контейнер ===== */
-
 .bottom-player {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #181818;
-  border-top: 1px solid #282828;
-  padding: 8px 16px;
   z-index: 1000;
-  height: 72px;
-  display: flex;
-  align-items: center;
+  height: 92px;
+  padding: 0 24px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary) 14%, var(--color-surface)) 0%,
+    var(--color-surface) 100%
+  );
+  border-top: 1px solid var(--color-border);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.28);
 }
-
-/* ===== Контейнер плеера ===== */
 
 .player-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  max-width: var(--page-max-width);
   height: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(320px, 760px) minmax(140px, 1fr);
+  align-items: center;
+  gap: 24px;
 }
 
-/* ============================================================ */
-/* ===== ЛЕВАЯ ЧАСТЬ: информация о треке ===== */
-/* ============================================================ */
+/* Left: track info */
 
-.player-track-info {
+.player-left {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex: 1;
+  gap: 12px;
   min-width: 0;
-  height: 100%;
+}
+
+.player-cover-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .player-cover {
   width: 56px;
   height: 56px;
-  border-radius: 4px;
+  border-radius: 8px;
   object-fit: cover;
-  flex-shrink: 0;
-  background: #282828;
-  cursor: pointer;
-  transition: transform 0.2s;
+  display: block;
+  transition: transform 0.2s ease;
 }
 
-.player-cover:hover {
-  transform: scale(1.04);
+.player-cover-btn:hover .player-cover {
+  transform: scale(1.03);
 }
 
-.player-cover.placeholder {
-  border: 1px solid #282828;
-  background: #1f1f1f;
+.player-cover--placeholder {
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border);
 }
 
 .player-track-meta {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: 2px;
   min-width: 0;
   flex: 1;
-  justify-content: center;
+}
+
+.player-track-title,
+.player-track-artist {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .player-track-title {
-  color: #ffffff;
+  color: var(--color-text);
   font-size: 14px;
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition: color 0.2s;
-  line-height: 1.4;
+  font-weight: 600;
 }
 
 .player-track-title:hover {
-  color: #1db954;
+  color: var(--color-primary);
   text-decoration: underline;
+}
+
+.player-track-title--muted {
+  cursor: default;
+  color: var(--color-text-muted);
+}
+
+.player-track-title--muted:hover {
+  color: var(--color-text-muted);
+  text-decoration: none;
 }
 
 .player-track-artist {
-  color: #b3b3b3;
-  font-size: 11px;
-  font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-  transition: color 0.2s;
+  color: var(--color-text-secondary);
+  font-size: 12px;
 }
 
 .player-track-artist:hover {
-  color: #ffffff;
+  color: var(--color-text);
   text-decoration: underline;
 }
 
-.placeholder-text {
-  color: #535353 !important;
-}
-
-/* ===== Кнопки рядом с треком (лайк) ===== */
-
-.player-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  height: 100%;
-}
-
-.player-actions button {
-  background: none;
-  border: none;
-  color: #b3b3b3;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-  transition: all 0.2s;
-  display: flex;
+.player-like {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.player-actions button:hover {
-  color: #ffffff;
+.player-like:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
 }
 
-.player-actions .like-btn.active {
-  color: #1db954;
+.player-like.is-active {
+  color: var(--color-primary);
 }
 
-/* ============================================================ */
-/* ===== ЦЕНТРАЛЬНАЯ ЧАСТЬ: управление ===== */
-/* ============================================================ */
+/* Center: controls */
 
-.player-controls {
+.player-center {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  flex: 2;
-  max-width: 600px;
-  height: 100%;
+  gap: 8px;
+  width: 100%;
 }
 
 .player-controls-buttons {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 18px;
 }
 
-.control-btn {
-  background: none;
-  border: none;
-  color: #b3b3b3;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px;
-  transition: all 0.15s;
-  display: flex;
+.player-control {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  border: none;
   border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
-.control-btn:hover:not(:disabled) {
-  color: #ffffff;
-  transform: scale(1.04);
+.player-control:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-hover);
 }
 
-.control-btn:disabled {
-  color: #404040;
+.player-control:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
-.control-btn.active {
-  color: #1db954;
+.player-control.is-active {
+  color: var(--color-accent);
 }
 
-/* ===== Кнопка Play/Pause ===== */
-
-.play-btn {
-  width: 40px;
-  height: 40px;
-  background: #ffffff;
-  color: #181818;
-  border-radius: 50%;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.player-control--play {
+  width: 46px;
+  height: 46px;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
-.play-btn:hover:not(:disabled) {
-  background: #ffffff;
-  transform: scale(1.06);
+.player-control--play:hover:not(:disabled) {
+  background: #fff;
+  color: #111;
+  transform: scale(1.05);
 }
 
-.play-btn:disabled {
-  background: #404040;
-  color: #888;
+.player-control--play:disabled {
+  background: var(--color-border-strong);
+  color: var(--color-text-muted);
+  box-shadow: none;
 }
 
-/* ===== Прогресс-бар ===== */
+/* Progress */
 
 .player-progress {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  min-height: 20px; /* ← Фикс: гарантирует видимость */
 }
 
 .player-time {
-  color: #b3b3b3;
+  min-width: 38px;
+  color: var(--color-text-muted);
   font-size: 11px;
-  font-weight: 400;
-  min-width: 40px;
   font-variant-numeric: tabular-nums;
   user-select: none;
 }
 
-.progress-bar {
+.player-progress__bar {
+  position: relative;
   flex: 1;
   height: 4px;
-  background: #535353;
-  border-radius: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-muted) 35%, transparent);
   cursor: pointer;
-  position: relative;
-  transition: height 0.15s;
+  transition: height 0.15s ease;
 }
 
-.progress-bar:hover {
+.player-progress__bar:hover {
   height: 6px;
 }
 
-.progress-bar.disabled {
-  cursor: default;
+.player-progress__bar.is-disabled {
   opacity: 0.4;
+  cursor: default;
 }
 
-.progress-fill {
+.player-progress__fill {
   height: 100%;
-  background: #1db954;
-  border-radius: 2px;
-  transition: width 0.05s linear;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-accent), #34d399);
   position: relative;
+  transition: width 0.05s linear;
 }
 
-.progress-bar:not(.disabled) .progress-fill::after {
+.player-progress__bar:not(.is-disabled):hover .player-progress__fill::after {
   content: "";
   position: absolute;
-  right: -8px;
+  right: -6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  background: #ffffff;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
-.progress-bar:not(.disabled):hover .progress-fill::after {
-  opacity: 1;
-}
+/* Right: volume */
 
-/* ============================================================ */
-/* ===== ПРАВАЯ ЧАСТЬ: громкость ===== */
-/* ============================================================ */
-
-.player-volume {
+.player-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 10px;
-  flex: 1;
-  min-width: 120px;
-  max-width: 180px;
-  height: 100%;
+  min-width: 0;
 }
 
-.volume-icon {
-  color: #b3b3b3;
-  font-size: 16px;
-  cursor: pointer;
-  transition: color 0.2s;
+.player-volume__icon {
+  display: inline-flex;
+  color: var(--color-text-secondary);
   flex-shrink: 0;
 }
 
-.volume-icon:hover {
-  color: #ffffff;
-}
-
-.volume-slider {
-  width: 93px;
+.player-volume__slider {
+  width: 100%;
+  max-width: 110px;
   height: 4px;
-  -webkit-appearance: none;
   appearance: none;
-  background: #535353;
-  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-text-muted) 35%, transparent);
+  border-radius: 999px;
   outline: none;
-  transition: background 0.15s;
-  flex: 1;
-  min-width: 50px;
+  cursor: pointer;
 }
 
-.volume-slider:hover {
-  background: #7a7a7a;
-}
-
-.volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
+.player-volume__slider::-webkit-slider-thumb {
+  appearance: none;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffffff;
-  cursor: pointer;
-  transition: transform 0.15s;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-.volume-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-
-.volume-slider::-moz-range-thumb {
+.player-volume__slider::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #ffffff;
-  cursor: pointer;
+  background: #fff;
   border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-.volume-slider:disabled {
-  opacity: 0.3;
+.player-volume__slider:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
-/* ============================================================ */
-/* ===== Адаптивность ===== */
-/* ============================================================ */
-
-@media (max-width: 768px) {
-  .bottom-player {
-    padding: 6px 12px;
-    height: 64px;
-  }
-
+@media (max-width: 960px) {
   .player-container {
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "left right"
+      "center center";
+    gap: 10px 16px;
+    padding: 10px 0;
   }
 
-  .player-track-info {
-    flex: 1;
-    min-width: 0;
+  .player-left {
+    grid-area: left;
+  }
+
+  .player-center {
+    grid-area: center;
+  }
+
+  .player-right {
+    grid-area: right;
+  }
+
+  .player-like {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .bottom-player {
+    height: auto;
+    min-height: 84px;
+    padding: 8px 12px 10px;
   }
 
   .player-cover {
+    width: 44px;
+    height: 44px;
+  }
+
+  .player-controls-buttons {
+    gap: 12px;
+  }
+
+  .player-control--play {
     width: 40px;
     height: 40px;
   }
 
-  .player-track-title {
-    font-size: 12px;
-  }
-
-  .player-track-artist {
-    font-size: 10px;
-  }
-
-  .player-actions {
-    display: none;
-  }
-
-  .player-controls {
-    flex: 2;
-    max-width: 400px;
-  }
-
-  .player-controls-buttons {
-    gap: 8px;
-  }
-
-  .player-controls-buttons .control-btn {
-    font-size: 14px;
-    width: 28px;
-    height: 28px;
-  }
-
-  .play-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .player-volume {
-    flex: 0.5;
-    min-width: 80px;
-    max-width: 120px;
-  }
-
-  .volume-slider {
-    width: 60px;
-    min-width: 40px;
-  }
-
-  .player-progress {
-    min-height: 16px;
-  }
-
-  .player-time {
-    font-size: 10px;
-    min-width: 32px;
-  }
-}
-
-@media (max-width: 480px) {
-  .bottom-player {
-    padding: 4px 8px;
-    height: 56px;
-  }
-
-  .player-container {
-    gap: 6px;
-  }
-
-  .player-track-info {
-    flex: 1;
-    min-width: 0;
-    gap: 8px;
-  }
-
-  .player-cover {
-    width: 32px;
-    height: 32px;
-  }
-
-  .player-track-title {
-    font-size: 11px;
-  }
-
-  .player-track-artist {
-    font-size: 9px;
-  }
-
-  .play-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
-
-  .control-btn {
-    font-size: 12px;
-    width: 24px;
-    height: 24px;
-  }
-
-  .player-time {
-    font-size: 10px;
-    min-width: 28px;
-  }
-
-  .player-progress {
-    min-height: 14px;
-  }
-
-  .player-volume {
+  .player-right {
     display: none;
   }
 }

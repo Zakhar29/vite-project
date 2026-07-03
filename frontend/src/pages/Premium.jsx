@@ -3,6 +3,7 @@ import "../styles/premium.css";
 function Premium() {
   return (
     <div className="premium-page">
+      <div className="premium-page__inner">
       <div className="premium-header">
         <button className="back-btn" onClick={() => window.history.back()}>
           ← Подписка
@@ -59,6 +60,7 @@ function Premium() {
         >
           Оплатить
         </button>
+      </div>
       </div>
     </div>
   );

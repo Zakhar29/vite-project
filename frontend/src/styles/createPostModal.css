@@ -1,10 +1,6 @@
-/* styles/createPostModal.css */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(6px);
   display: flex;
@@ -14,29 +10,33 @@
 }
 
 .modal-content {
-  background: rgba(20, 20, 40, 0.95);
-  border-radius: 24px;
-  padding: 30px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+}
+
+.modal-content.neon-border {
+  box-shadow: none;
 }
 
 .modal-title {
-  color: #ff66cc;
-  text-shadow: 0 0 5px #ff66cc;
+  color: var(--color-text);
   text-align: center;
   margin-bottom: 20px;
-  font-family: 'Courier New', monospace;
+  font-size: 22px;
+  font-weight: 700;
 }
 
 .post-textarea {
   width: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid #00ffff;
-  border-radius: 16px;
-  padding: 12px;
-  color: #e0e0ff;
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--color-text);
   font-size: 16px;
   resize: vertical;
   margin-bottom: 20px;
@@ -44,61 +44,60 @@
 
 .post-textarea:focus {
   outline: none;
-  box-shadow: 0 0 10px #00ffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(82, 85, 244, 0.15);
 }
 
 .modal-actions {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
 .neon-btn-small {
-  background: transparent;
-  border: 1px solid #00ffff;
-  color: #00ffff;
-  padding: 8px 18px;
-  border-radius: 30px;
+  background: var(--color-primary);
+  border: none;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s ease;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .neon-btn-small:hover {
-  background: #00ffff;
-  color: #0a0a1a;
-  box-shadow: 0 0 12px #00ffff;
+  background: var(--color-primary-hover);
 }
 
 .cancel-btn-small {
   background: transparent;
-  border: 1px solid #ff66cc;
-  color: #ff66cc;
-  padding: 8px 18px;
-  border-radius: 30px;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s ease;
 }
 
 .cancel-btn-small:hover {
-  background: #ff66cc;
-  color: #0a0a1a;
-  box-shadow: 0 0 12px #ff66cc;
+  border-color: #f87171;
+  color: #f87171;
 }
 
-/* reactions picker */
 .reactions-picker {
   margin: 15px 0;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 16px;
-  padding: 10px;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
 }
 
 .reactions-picker label {
   display: block;
   margin-bottom: 10px;
   font-size: 14px;
-  color: #ff66cc;
+  color: var(--color-text-secondary);
 }
 
 .emoji-grid {
@@ -112,26 +111,64 @@
   font-size: 28px;
   cursor: pointer;
   padding: 5px;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: 0.2s;
-  background: rgba(255,255,255,0.05);
+  background: var(--color-surface-input);
   width: 48px;
   text-align: center;
 }
 
 .emoji-option:hover {
-  transform: scale(1.2);
-  background: rgba(0, 255, 255, 0.2);
+  transform: scale(1.08);
+  background: rgba(82, 85, 244, 0.15);
 }
 
 .emoji-option.active {
-  background: rgba(0, 255, 255, 0.4);
-  box-shadow: 0 0 8px #00ffff;
+  background: rgba(82, 85, 244, 0.25);
+  box-shadow: 0 0 0 1px var(--color-primary);
 }
 
 .selected-reactions {
   font-size: 14px;
-  color: #00ffff;
+  color: var(--color-text-secondary);
   margin-top: 8px;
   word-break: break-all;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+}
+
+.user-name {
+  font-weight: 600;
+  display: block;
+}
+
+.user-status {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.close-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: var(--color-text);
 }

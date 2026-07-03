@@ -15,7 +15,7 @@
 }
 
 .user-list-modal {
-  background: #1a1a2e;
+  background: var(--color-surface);
   border-radius: 16px;
   max-width: 500px;
   width: 90%;
@@ -45,7 +45,7 @@
 .user-list-count {
   color: #6b7280;
   font-size: 14px;
-  background: #0d0d1a;
+  background: var(--color-bg);
   padding: 2px 12px;
   border-radius: 12px;
 }
@@ -83,7 +83,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #0d0d1a;
+  background: var(--color-bg);
   border-radius: 10px;
   animation: pulse 1.5s ease-in-out infinite;
 }
@@ -92,7 +92,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #2a2a3e;
+  background: var(--color-border-strong);
   flex-shrink: 0;
 }
 
@@ -105,7 +105,7 @@
 
 .skeleton-line {
   height: 14px;
-  background: #2a2a3e;
+  background: var(--color-border-strong);
   border-radius: 4px;
   width: 60%;
 }
@@ -136,7 +136,7 @@
 }
 
 .error-message button {
-  background: #4a9eff;
+  background: var(--color-primary);
   border: none;
   border-radius: 8px;
   padding: 8px 20px;
@@ -173,7 +173,7 @@
   width: 100%;
   padding: 10px;
   background: transparent;
-  border: 1px solid #2a2a3e;
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   color: #94a3b8;
   font-size: 14px;
@@ -183,7 +183,7 @@
 }
 
 .load-more-btn:hover:not(:disabled) {
-  border-color: #4a9eff;
+  border-color: var(--color-primary);
   color: #e2e8f0;
 }
 
@@ -204,7 +204,7 @@
 }
 
 .user-card:hover {
-  background: #2a2a3e;
+  background: var(--color-border-strong);
 }
 
 .user-card-avatar {
@@ -212,7 +212,7 @@
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #4a9eff;
+  border: 2px solid var(--color-primary);
   flex-shrink: 0;
 }
 

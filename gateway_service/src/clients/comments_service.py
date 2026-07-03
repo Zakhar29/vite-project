@@ -34,6 +34,14 @@ class CommentClient(ServiceClient):
     async def delete_post_comment(self, post_id: str, comment_id: str, token: str) -> None:
         return await self._request("DELETE", f"/posts/{post_id}/comments/{comment_id}", token=token)
 
+    async def reply_to_post_comment(self, post_id: str, comment_id: str, comment: str, token: str) -> dict:
+        return await self._request(
+            "POST",
+            f"/posts/{post_id}/comments/{comment_id}/replies",
+            token=token,
+            json={"comment": comment},
+        )
+
     # ========== Комментарии к трекам ==========
 
     async def list_track_comments(

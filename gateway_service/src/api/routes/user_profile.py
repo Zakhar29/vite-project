@@ -20,6 +20,7 @@ from src.clients.users_service import UsersClient
 from src.clients.music_service import MusicClient
 from src.clients.social_feed_service import SocialClient
 from src.clients.media_service import MediaClient
+from src.api.schemas import ProfileNicknameUpdate, ProfileUsernameUpdate, ProfileBioUpdate
 
 
 router = APIRouter(prefix="/user", tags=["User Page"])
@@ -601,13 +602,15 @@ async def get_my_edit_info(
     Получение информации о пользователе для страницы редактирования.
     """
     user_info = await users_client.get_user_info(str(current_user.id))
+    user_me = await users_client.get_me(token=current_user.token)
 
     return {
         "id": str(current_user.id),
         "username": user_info.get("user_name", ""),
         "nickname": user_info.get("user_nickname", current_user.nickname),
         "avatar_url": user_info.get("user_avatar", current_user.avatar_url),
-        "bio": user_info.get("user_bio", "")
+        "bio": user_info.get("user_bio", ""),
+        "email": user_me.get("email", ""),
     }
 
 
@@ -657,13 +660,14 @@ async def upload_and_update_avatar(
 
 @router.put("/settings/bio")
 async def update_my_bio(
-        bio: str,
+        data: ProfileBioUpdate,
         current_user: CurrentUser = Depends(get_current_user),
         users_client: UsersClient = Depends(get_users_client)
 ):
     """
     Обновить биографию пользователя.
     """
+    bio = data.bio
     if len(bio) > 500:
         raise HTTPException(status_code=400, detail="Bio too long (max 500 characters)")
 
@@ -675,13 +679,14 @@ async def update_my_bio(
 
 @router.put("/settings/nickname")
 async def update_my_nickname(
-        nickname: str,
+        data: ProfileNicknameUpdate,
         current_user: CurrentUser = Depends(get_current_user),
         users_client: UsersClient = Depends(get_users_client)
 ):
     """
     Обновить никнейм пользователя.
     """
+    nickname = data.nickname
     if len(nickname) < 2 or len(nickname) > 30:
         raise HTTPException(status_code=400, detail="Nickname must be 2-30 characters")
 
@@ -693,13 +698,14 @@ async def update_my_nickname(
 
 @router.put("/settings/username")
 async def update_my_username(
-        username: str,
+        data: ProfileUsernameUpdate,
         current_user: CurrentUser = Depends(get_current_user),
         users_client: UsersClient = Depends(get_users_client)
 ):
     """
     Обновить имя пользователя (username).
     """
+    username = data.username
     if not re.match(r"^[a-zA-Z0-9_]{3,30}$", username):
         raise HTTPException(status_code=400, detail="Username must be 3-30 characters (letters, numbers, underscore)")
 

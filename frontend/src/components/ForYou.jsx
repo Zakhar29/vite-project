@@ -76,7 +76,10 @@ function ForYou() {
   if (loading) {
     return (
       <section className="foryou-section">
-        <SectionTitle title="Для вас" />
+        <div className="foryou-header">
+          <SectionTitle title="Для вас" subtitle="Подготовлено для вашего прослушивания" />
+          <a href="/search" className="view-all">Посмотреть еще →</a>
+        </div>
         <div className="foryou-grid">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="music-card-skeleton">
@@ -93,7 +96,10 @@ function ForYou() {
   if (error) {
     return (
       <section className="foryou-section">
-        <SectionTitle title="Для вас" />
+        <div className="foryou-header">
+          <SectionTitle title="Для вас" subtitle="Подготовлено для вашего прослушивания" />
+          <a href="/search" className="view-all">Посмотреть еще →</a>
+        </div>
         <div className="error-message">
           <p>{error}</p>
           <button onClick={() => window.location.reload()}>Попробовать снова</button>
@@ -104,10 +110,13 @@ function ForYou() {
 
   return (
     <section className="foryou-section">
-      <SectionTitle title="Для вас" />
+      <div className="foryou-header">
+        <SectionTitle title="Для вас" subtitle="Подготовлено для вашего прослушивания" />
+        <a href="/search" className="view-all">Посмотреть еще →</a>
+      </div>
 
       <div className="foryou-grid">
-        {items.map((item) => (
+        {items.slice(0, 8).map((item) => (
           <MusicCard
             key={item.id}
             item={item}

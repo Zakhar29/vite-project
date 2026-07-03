@@ -16,7 +16,8 @@ from src.api.routes import (
     user_profile,
     album_page,
     search,
-    auth
+    auth,
+    comment_actions,
 )
 
 # ========== СОЗДАНИЕ ПРИЛОЖЕНИЯ ==========
@@ -57,6 +58,7 @@ app.include_router(track_page.router, prefix="/api/v1")
 app.include_router(user_profile.router, prefix="/api/v1")
 app.include_router(post_page.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
+app.include_router(comment_actions.router, prefix="/api/v1")
 
 
 # ========== КОРНЕВОЙ ЭНДПОИНТ ==========

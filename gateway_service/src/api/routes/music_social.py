@@ -12,7 +12,7 @@ from src.api.dependencies import (
     get_comment_client,
     get_social_client
 )
-from src.api.schemas import TrackCommentCreate, TrackCommentUpdate
+from src.api.schemas import TrackCommentCreate, TrackCommentUpdate, CommentReplyCreate
 from src.clients.music_service import MusicClient
 from src.clients.comments_service import CommentClient
 from src.clients.social_feed_service import SocialClient
@@ -163,6 +163,43 @@ async def delete_track_comment(
 
     return {
         "message": "Comment deleted successfully"
+    }
+
+
+@router.post("/track/{track_id}/comment/{comment_id}/reply", status_code=201)
+async def reply_to_track_comment(
+        request: Request,
+        track_id: str,
+        comment_id: str,
+        data: CommentReplyCreate,
+        current_user: CurrentUser = Depends(get_current_user),
+        music_client: MusicClient = Depends(get_music_client),
+        comment_client: CommentClient = Depends(get_comment_client)
+):
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing authorization token")
+
+    track = await music_client.get_track(track_id)
+    if not track:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    try:
+        comment_result = await comment_client.reply_to_track_comment(
+            track_id=track_id,
+            comment_id=comment_id,
+            comment=data.comment,
+            token=token,
+            track_timecode=data.track_timecode,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create reply: {str(e)}")
+
+    return {
+        "message": "Reply created successfully",
+        "comment": comment_result
     }
 
 

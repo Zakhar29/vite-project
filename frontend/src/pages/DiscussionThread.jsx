@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { DEFAULT_AVATAR } from "../utils/avatar";
 import DiscussionPost from "../components/DiscussionPost";
 import Comment from "../components/Comment";
 import CommentForm from "../components/CommentForm";
 import RelatedSidebar from "../components/RelatedSidebar";
+import ThreadFooter from "../components/ThreadFooter";
 import "../styles/thread.css";
 
 // ========== Конфигурация API ==========
@@ -212,7 +214,7 @@ function DiscussionThread() {
         author: {
           id: currentUser?.id || 'me',
           nickname: currentUser?.nickname || 'Вы',
-          avatar_url: currentUser?.avatar_url || '/default-avatar.png'
+          avatar_url: currentUser?.avatar_url || DEFAULT_AVATAR
         },
         comment: commentText,
         created_at: new Date().toISOString(),
@@ -317,7 +319,11 @@ function DiscussionThread() {
           <CommentForm
             entityId={id}
             entityType="post"
-            onCommentAdded={handleCommentSubmit}
+            userAvatar={JSON.parse(localStorage.getItem("user") || "{}")?.avatar_url}
+            onCommentAdded={() => {
+              loadComments(0);
+              setCommentsCount((prev) => prev + 1);
+            }}
           />
           <h3 className="comments-title">
             Комментарии ({commentsCount})
@@ -338,7 +344,14 @@ function DiscussionThread() {
                 </div>
               ) : (
                 comments.map((comment) => (
-                  <Comment key={comment.id} comment={comment} />
+                  <Comment
+                    key={comment.id}
+                    comment={comment}
+                    entityType="post"
+                    entityId={id}
+                    userAvatar={JSON.parse(localStorage.getItem("user") || "{}")?.avatar_url}
+                    onUpdate={() => loadComments(0)}
+                  />
                 ))
               )}
 
@@ -360,6 +373,7 @@ function DiscussionThread() {
 
         <RelatedSidebar id={id} />
       </div>
+      <ThreadFooter />
     </div>
   );
 }

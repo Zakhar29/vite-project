@@ -1,6 +1,7 @@
 // pages/ProfileEdit.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 import '../styles/profileEdit.css';
 
 // ========== Конфигурация API ==========
@@ -22,6 +23,7 @@ function ProfileEdit() {
   });
 
   const [originalData, setOriginalData] = useState({});
+  const [userId, setUserId] = useState('');
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +54,8 @@ function ProfileEdit() {
       }
 
       const data = await response.json();
+
+      setUserId(data.id || '');
 
       const userData = {
         avatar: data.avatar_url || '',
@@ -189,13 +193,27 @@ function ProfileEdit() {
       }
 
       // Ждём выполнения всех запросов
-      const results = await Promise.allSettled(updatePromises);
+      const results = await Promise.all(updatePromises);
 
-      // Проверяем, были ли ошибки
-      const errors = results.filter(r => r.status === 'rejected');
-      if (errors.length > 0) {
-        throw new Error('Ошибка при обновлении некоторых полей');
+      for (const response of results) {
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const detail = errorData.detail;
+          const message = typeof detail === 'string'
+            ? detail
+            : 'Ошибка при обновлении полей';
+          throw new Error(message);
+        }
       }
+
+      // Обновляем localStorage user
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({
+        ...storedUser,
+        nickname: formData.nickname,
+        username: formData.username,
+        avatar_url: newAvatarUrl || storedUser.avatar_url,
+      }));
 
       // Обновляем оригинальные данные
       setOriginalData({
@@ -210,7 +228,7 @@ function ProfileEdit() {
 
       setSuccessMessage('Профиль успешно обновлён!');
       setTimeout(() => {
-        navigate('/profile/me');
+        navigate(userId ? `/profile/${userId}` : '/profile/me');
       }, 1500);
 
     } catch (error) {
@@ -242,7 +260,7 @@ function ProfileEdit() {
 
   return (
     <div className="profile-edit-page">
-      <div className="edit-form-container neon-border">
+      <div className="edit-form-container">
         <h2>Редактирование профиля</h2>
 
         {serverError && (
@@ -258,8 +276,8 @@ function ProfileEdit() {
           <div className="form-group">
             <label>Аватар</label>
             <div className="avatar-upload">
-              <img
-                src={avatarPreview || '/default-avatar.png'}
+              <Avatar
+                src={avatarPreview}
                 alt="Avatar preview"
                 className="edit-avatar-preview"
               />

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Avatar from './Avatar';
 import '../styles/createPostModal.css';
 
 // ========== Конфигурация API ==========
@@ -122,8 +123,8 @@ function CreatePostModal({ isOpen, onClose, onPostCreated }) {
         {/* Header с информацией о пользователе */}
         <div className="modal-header">
           <div className="user-info">
-            <img
-              src={userData?.avatar_url || localStorage.getItem('avatar_url') || 'https://i.pravatar.cc/48'}
+            <Avatar
+              src={userData?.avatar_url || localStorage.getItem('avatar_url')}
               alt={userData?.nickname || 'User'}
               className="user-avatar"
             />

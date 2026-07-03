@@ -32,7 +32,7 @@ class UserStatuses(Base):
 class Users(Base):
     __tablename__ = "users"
 
-    id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid6.uuid7())
+    id: Mapped[uuid6.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid6.uuid7)
     username: Mapped[str] = mapped_column(VARCHAR(50), unique=True, nullable=False)
     nickname: Mapped[str] = mapped_column(VARCHAR(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(VARCHAR(255), unique=True, nullable=False)

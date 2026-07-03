@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Avatar from './Avatar';
 import '../styles/createPost.css';
 
 // ========== Конфигурация API ==========
@@ -210,8 +211,8 @@ function CreatePost({ isOpen, onClose, onPostCreated }) {
         <div className="create-post-header">
           <div className="user-info">
             <div className="avatar">
-              <img
-                src={userData?.avatar_url || localStorage.getItem('avatar_url') || 'https://i.pravatar.cc/48'}
+              <Avatar
+                src={userData?.avatar_url || localStorage.getItem('avatar_url')}
                 alt={userData?.nickname || 'User'}
               />
             </div>

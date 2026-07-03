@@ -1,23 +1,23 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import "../styles/album.css";
-import "../styles/track.css";
+import { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import CollectionHeader from "../components/CollectionHeader";
+import CollectionTrackTable from "../components/CollectionTrackTable";
+import {
+  estimateTrackDuration,
+  formatTotalDurationLabel,
+} from "../utils/formatDuration";
+import "../styles/collection.css";
 
-// ========== Конфигурация API ==========
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 function Album() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
 
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [isFollowed, setIsFollowed] = useState(false);
-
-  // ========== Загрузка данных ==========
 
   useEffect(() => {
     loadAlbumData();
@@ -33,18 +33,13 @@ function Album() {
       });
 
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("Альбом не найден");
-        }
+        if (response.status === 404) throw new Error("Альбом не найден");
         throw new Error("Ошибка загрузки альбома");
       }
 
       const data = await response.json();
       setAlbum(data.album);
-
       setIsLiked(false);
-      setIsFollowed(false);
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -52,80 +47,70 @@ function Album() {
     }
   };
 
-  // ========== Управление плеером ==========
-
-
-  const playAlbum = () => {
-    if (!album?.tracks?.length) {
-      alert("В альбоме нет треков");
-      return;
-    }
-
-    const tracks = album.tracks.map(track => ({
+  const enrichedTracks = useMemo(() => {
+    if (!album?.tracks) return [];
+    return album.tracks.map((track) => ({
       ...track,
+      artist_name: album.author?.nickname || "Неизвестный автор",
+      album_title: album.title,
+      duration_seconds: estimateTrackDuration(track),
+    }));
+  }, [album]);
+
+  const metaLabel = useMemo(() => {
+    const totalSeconds = enrichedTracks.reduce(
+      (sum, track) => sum + (track.duration_seconds || 0),
+      0
+    );
+    return formatTotalDurationLabel(enrichedTracks.length, totalSeconds);
+  }, [enrichedTracks]);
+
+  const description = useMemo(() => {
+    if (album?.description) return album.description;
+    const author = album?.author?.nickname || "артиста";
+    const typeLabel = album?.type?.toLowerCase?.() || "альбом";
+    return `Подборка треков в формате ${typeLabel} от ${author}. Идеально для полного погружения в звучание и настроение релиза.`;
+  }, [album]);
+
+  const buildPlayerTracks = (tracksList) =>
+    tracksList.map((track) => ({
+      ...track,
+      id: track.track_id,
       author_name: album.author?.nickname || "Неизвестный автор",
       author_id: album.author?.id,
       cover_url: album.cover_url,
     }));
 
-    const firstTrack = tracks[0];
-    if (firstTrack?.track_url) {
-      // Сохраняем в localStorage
-      localStorage.setItem("currentTrack", JSON.stringify(firstTrack));
-      localStorage.setItem("playlist", JSON.stringify(tracks));
-      localStorage.setItem("currentIndex", "0");
+  const startPlayback = (tracksList, startIndex = 0) => {
+    if (!tracksList.length) return;
 
-      console.log("🎵 Сохранён трек в localStorage:", firstTrack);
+    const playlist = buildPlayerTracks(tracksList);
+    const track = playlist[startIndex];
 
-      // Диспатчим события
-      window.dispatchEvent(new Event("trackChanged"));
-      window.dispatchEvent(new Event("playlistChanged"));
-
-      console.log("📤 События отправлены");
-    } else {
-      alert("У трека нет аудиофайла");
+    if (!track?.track_url) {
+      return;
     }
+
+    localStorage.setItem("currentTrack", JSON.stringify(track));
+    localStorage.setItem("playlist", JSON.stringify(playlist));
+    localStorage.setItem("currentIndex", String(startIndex));
+    window.dispatchEvent(new Event("trackChanged"));
+    window.dispatchEvent(new Event("playlistChanged"));
+  };
+
+  const playAlbum = () => startPlayback(enrichedTracks, 0);
+
+  const shuffleAlbum = () => {
+    const shuffled = [...enrichedTracks].sort(() => Math.random() - 0.5);
+    startPlayback(shuffled, 0);
   };
 
   const playTrack = (track, index) => {
-    if (!track?.track_url) {
-      alert("У трека нет аудиофайла");
-      return;
-    }
-
-    const tracks = album.tracks.map(t => ({
-      ...t,
-      author_name: album.author?.nickname || "Неизвестный автор",
-      author_id: album.author?.id,
-      cover_url: album.cover_url,
-    }));
-
-    const trackWithMeta = {
-      ...track,
-      author_name: album.author?.nickname || "Неизвестный автор",
-      author_id: album.author?.id,
-      cover_url: album.cover_url,
-    };
-
-    console.log("🎵 Сохранён трек в localStorage:", trackWithMeta);
-
-    localStorage.setItem("currentTrack", JSON.stringify(trackWithMeta));
-    localStorage.setItem("playlist", JSON.stringify(tracks));
-    localStorage.setItem("currentIndex", String(index));
-
-    window.dispatchEvent(new Event("trackChanged"));
-    window.dispatchEvent(new Event("playlistChanged"));
-
-    console.log("📤 События отправлены");
+    startPlayback(enrichedTracks, index);
   };
 
-  // ========== Обработчики ==========
-
   const handleLike = async () => {
-    if (!token) {
-      alert("Войдите, чтобы оценить альбом");
-      return;
-    }
+    if (!token) return;
 
     const url = `${API_URL}/api/v1/social/album/${id}/${isLiked ? "unlike" : "like"}`;
     try {
@@ -136,9 +121,9 @@ function Album() {
 
       if (response.ok) {
         setIsLiked(!isLiked);
-        setAlbum(prev => ({
+        setAlbum((prev) => ({
           ...prev,
-          liked_quantity: prev.liked_quantity + (isLiked ? -1 : 1),
+          liked_quantity: (prev.liked_quantity || 0) + (isLiked ? -1 : 1),
         }));
       }
     } catch (err) {
@@ -146,188 +131,57 @@ function Album() {
     }
   };
 
-  const handleFollow = async () => {
-    if (!token) {
-      alert("Войдите, чтобы подписаться");
-      return;
-    }
-
-    const url = `${API_URL}/api/v1/social/album/${id}/${isFollowed ? "unfollow" : "follow"}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        setIsFollowed(!isFollowed);
-        setAlbum(prev => ({
-          ...prev,
-          follower_quantity: prev.follower_quantity + (isFollowed ? -1 : 1),
-        }));
-      }
-    } catch (err) {
-      console.error("Ошибка подписки:", err);
-    }
-  };
-
-  // ========== Состояние загрузки ==========
-
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Загрузка альбома...</p>
+      <div className="collection-page">
+        <div className="collection-page__state">
+          <div className="loading-spinner" />
+          <p>Загрузка альбома...</p>
+        </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !album) {
     return (
-      <div className="error-container">
-        <h2>Ошибка</h2>
-        <p>{error}</p>
-        <button onClick={loadAlbumData}>Попробовать снова</button>
+      <div className="collection-page">
+        <div className="collection-page__state">
+          <h2>{error || "Альбом не найден"}</h2>
+          <button type="button" onClick={loadAlbumData}>
+            Попробовать снова
+          </button>
+        </div>
       </div>
     );
   }
-
-  if (!album) {
-    return (
-      <div className="not-found-container">
-        <h2>Альбом не найден</h2>
-        <p>Возможно, он был удалён или ещё не опубликован</p>
-      </div>
-    );
-  }
-
-  // ========== Рендер ==========
 
   return (
-    <div className="album-page">
-
-      {/* ===== ЗАГОЛОВОК АЛЬБОМА ===== */}
-      <div className="album-header">
-
-        <img
-          src={album.cover_url || "https://picsum.photos/300"}
-          className="album-cover"
-          alt={album.title}
+    <div className="collection-page">
+      <div className="collection-page__inner">
+        <CollectionHeader
+          coverUrl={album.cover_url}
+          title={album.title}
+          subtitle={album.author?.nickname || "Неизвестный автор"}
+          subtitleTo={album.author?.id ? `/profile/${album.author.id}` : undefined}
+          description={description}
+          metaLabel={metaLabel}
+          onPlay={playAlbum}
+          onShuffle={shuffleAlbum}
+          onLike={handleLike}
+          isLiked={isLiked}
+          canPlay={enrichedTracks.some((t) => t.track_url)}
         />
 
-        <div className="album-info">
-          <h1>{album.title}</h1>
-          <p
-            className="album-artist"
-            onClick={() => navigate(`/profile/${album.author?.id}`)}
-            style={{ cursor: 'pointer' }}
-          >
-            {album.author?.nickname || "Неизвестный автор"}
-          </p>
-
-          {album.description && (
-            <p className="album-desc">{album.description}</p>
-          )}
-
-          <div className="album-meta">
-            <span>{album.tracks_count || 0} треков</span>
-            <span className="separator">•</span>
-            <span>❤️ {album.liked_quantity || 0}</span>
-            <span className="separator">•</span>
-            <span>👤 {album.follower_quantity || 0} подписчиков</span>
-            <span className="separator">•</span>
-            <span>🎧 {album.listening_quantity || 0} прослушиваний</span>
-          </div>
-
-          <div className="album-buttons">
-            <button
-              className="play-btn"
-              onClick={playAlbum}
-              disabled={!album.tracks?.length}
-            >
-              ▶ Воспроизвести
-            </button>
-            <button className="shuffle-btn">🔀 Перемешать</button>
-            <button
-              className={`like-btn ${isLiked ? "active" : ""}`}
-              onClick={handleLike}
-            >
-              {isLiked ? "❤️" : "🤍"} {album.liked_quantity || 0}
-            </button>
-            <button
-              className={`follow-btn ${isFollowed ? "active" : ""}`}
-              onClick={handleFollow}
-            >
-              {isFollowed ? "✅ Подписан" : "➕ Подписаться"}
-            </button>
-          </div>
-        </div>
-
+        <CollectionTrackTable
+          tracks={enrichedTracks}
+          albumTitle={album.title}
+          onPlayTrack={playTrack}
+        />
       </div>
 
-      {/* ===== СПИСОК ТРЕКОВ ===== */}
-      <div className="tracks">
-
-        <h2>Треки</h2>
-
-        <table className="tracks-table">
-
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Название</th>
-              <th>Исполнитель</th>
-              <th>Альбом</th>
-              <th>Прослушивания</th>
-              <th></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {album.tracks && album.tracks.length > 0 ? (
-              album.tracks.map((track, index) => (
-                <tr
-                  key={track.track_id || index}
-                  className="track-row"
-                >
-                  <td>{index + 1}</td>
-                  <td
-                    className="track-name"
-                    onClick={() => navigate(`/track/${track.track_id}`)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {track.title}
-                  </td>
-                  <td>{album.author?.nickname || "Неизвестен"}</td>
-                  <td>{album.title}</td>
-                  <td>🎧 {track.listening_quantity || 0}</td>
-                  <td>
-                    <button
-                      className="track-play-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        playTrack(track, index);
-                      }}
-                      title="Воспроизвести трек"
-                    >
-                      ▶
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="empty-tracks">
-                  В альбоме пока нет треков
-                </td>
-              </tr>
-            )}
-          </tbody>
-
-        </table>
-
-      </div>
-
+      <footer className="collection-page__footer">
+        © 2025 Музыкальный сайт. Все права защищены.
+      </footer>
     </div>
   );
 }

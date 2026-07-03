@@ -1,38 +1,49 @@
 .create-release-page {
+  background: var(--color-bg);
+  min-height: calc(100vh - 72px);
+  padding: 32px var(--page-padding) 110px;
+}
+
+.create-release-page__inner {
   max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
+  margin: 0 auto;
 }
 
 .create-release-container {
-  background: rgba(20, 20, 40, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 28px;
-  padding: 30px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.create-release-container h1,
+.create-release-container h2 {
+  color: var(--color-text);
 }
 
 .release-type-switch {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   justify-content: center;
   margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
 .release-type-switch button {
   background: transparent;
-  border: 2px solid #00ffff;
-  color: #00ffff;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
   padding: 8px 24px;
-  border-radius: 40px;
-  font-weight: bold;
+  border-radius: 10px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s ease;
 }
 
 .release-type-switch button.active {
-  background: #00ffff;
-  color: #0a0a1a;
-  box-shadow: 0 0 10px #00ffff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
 }
 
 .tracks-section {
@@ -47,33 +58,35 @@
 }
 
 .add-track-btn {
-  background: #ff66cc20;
-  border: 1px solid #ff66cc;
-  color: #ff66cc;
-  padding: 6px 16px;
-  border-radius: 30px;
+  background: rgba(82, 85, 244, 0.12);
+  border: 1px solid var(--color-primary);
+  color: var(--color-accent-light);
+  padding: 8px 16px;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 500;
 }
 
 .track-editor {
-  background: rgba(0,0,0,0.4);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
   padding: 20px;
   margin-bottom: 20px;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
 }
 
 .track-header {
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  font-weight: bold;
-  color: #00ffff;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
 .remove-track {
   background: none;
   border: none;
-  color: #ff66cc;
+  color: #f87171;
   cursor: pointer;
 }
 
@@ -85,16 +98,19 @@
 }
 
 .duration {
-  color: #00ffff;
+  color: var(--color-text-muted);
   margin-left: 10px;
 }
 
 .genres-select select {
   width: 100%;
   min-height: 100px;
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  color: var(--color-text);
+  padding: 10px;
 }
-
-/* переиспользуем стили из profileEdit.css для .neon-input и т.д. */
 
 .custom-file-upload {
   margin-top: 8px;
@@ -102,21 +118,35 @@
 
 .audio-upload-btn {
   display: inline-block;
-  background: #1e2937;
-  color: #a5b4fc;
+  background: var(--color-surface-input);
+  color: var(--color-text);
   padding: 12px 20px;
-  border-radius: 8px;
-  border: 1px solid #4f46e5;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-strong);
   cursor: pointer;
   transition: 0.2s;
   font-weight: 500;
 }
 
 .audio-upload-btn:hover {
-  background: #334155;
-  border-color: #6366f1;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-.audio-upload-btn:active {
-  background: #4338ca;
+.cover-preview {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+}
+
+@media (max-width: 768px) {
+  .create-release-page {
+    padding: 20px 20px 100px;
+  }
+
+  .create-release-container {
+    padding: 22px;
+  }
 }

@@ -1,0 +1,82 @@
+.avatar-menu {
+  position: relative;
+}
+
+.avatar-menu__trigger {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: box-shadow 0.2s ease;
+}
+
+.avatar-menu__trigger:hover,
+.avatar-menu__trigger.is-open {
+  box-shadow: 0 0 0 2px rgba(82, 85, 244, 0.45);
+}
+
+.avatar-menu__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+  display: block;
+}
+
+.avatar-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 190px;
+  padding: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  z-index: 1100;
+  animation: avatar-menu-fade-in 0.15s ease;
+}
+
+@keyframes avatar-menu-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.avatar-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.avatar-menu__item:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.avatar-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.avatar-menu__item:hover .avatar-menu__icon {
+  color: var(--color-primary);
+}

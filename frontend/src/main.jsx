@@ -1,8 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'   // ← добавь это
+import { BrowserRouter } from 'react-router-dom'
+import { initTheme } from './utils/theme'
 import './styles/global.css'
+import './styles/pageLayout.css'
 import App from './App.jsx'
+
+initTheme()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

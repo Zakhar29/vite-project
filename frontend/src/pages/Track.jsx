@@ -2,10 +2,27 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Comment from "../components/Comment";
 import CommentForm from "../components/CommentForm";
+import Avatar from "../components/Avatar";
 import "../styles/track.css";
 
-// ========== Конфигурация API ==========
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+const MOCK_PLAYLISTS = [
+  { id: 1, title: "Cyberpunk Essentials", tracks: 18, cover: "https://picsum.photos/seed/cyberpunk/120" },
+  { id: 2, title: "Late Night Drives", tracks: 12, cover: "https://picsum.photos/seed/latenight/120" },
+];
+
+function formatTime(seconds) {
+  if (!seconds || Number.isNaN(seconds)) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+function formatCount(num) {
+  if (!num) return "0";
+  return Number(num).toLocaleString("ru-RU");
+}
 
 function Track() {
   const { id } = useParams();
@@ -19,40 +36,59 @@ function Track() {
   const [comments, setComments] = useState([]);
   const [similarTracks, setSimilarTracks] = useState([]);
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
-
-  // ========== Загрузка данных ==========
+  const [currentUser, setCurrentUser] = useState(null);
+  const [playback, setPlayback] = useState({ current: 0, duration: 0, isActive: false, isPlaying: false });
 
   useEffect(() => {
     loadTrackData();
   }, [id]);
+
+  useEffect(() => {
+    const onProgress = (e) => {
+      const detail = e.detail || {};
+      if (String(detail.track_id) === String(id)) {
+        setPlayback({
+          current: detail.currentTime || 0,
+          duration: detail.duration || 0,
+          isActive: true,
+          isPlaying: detail.isPlaying,
+        });
+      } else {
+        setPlayback((prev) => ({ ...prev, isActive: false }));
+      }
+    };
+    window.addEventListener("playerProgress", onProgress);
+    return () => window.removeEventListener("playerProgress", onProgress);
+  }, [id]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_URL}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => data && setCurrentUser(data))
+      .catch(() => {});
+  }, [token]);
 
   const loadTrackData = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Получаем информацию о треке
       const trackResponse = await fetch(`${API_URL}/api/v1/track-page/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!trackResponse.ok) {
-        if (trackResponse.status === 404) {
-          throw new Error("Трек не найден");
-        }
-        throw new Error("Ошибка загрузки трека");
+        throw new Error(trackResponse.status === 404 ? "Трек не найден" : "Ошибка загрузки трека");
       }
 
       const trackData = await trackResponse.json();
       setTrack(trackData.track);
       setIsLiked(false);
-
-      // Загружаем комментарии
       await loadComments();
-
-      // Загружаем похожие треки
       await loadSimilarTracks();
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -65,118 +101,85 @@ function Track() {
       const response = await fetch(`${API_URL}/api/v1/track-page/${id}/comments?skip=0&limit=20`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-
       if (response.ok) {
         const data = await response.json();
         setComments(data.items || []);
       }
     } catch (err) {
-      console.error("Ошибка загрузки комментариев:", err);
+      console.error(err);
     }
   };
-
-  // ========== Загрузка похожих треков ==========
 
   const loadSimilarTracks = async () => {
     setIsLoadingSimilar(true);
     try {
-      const response = await fetch(`${API_URL}/api/v1/music-feed/tracks/${id}/similar?limit=10`, {
+      const response = await fetch(`${API_URL}/api/v1/music-feed/tracks/${id}/similar?limit=5`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-
       if (response.ok) {
         const data = await response.json();
         setSimilarTracks(data.items || []);
       }
     } catch (err) {
-      console.error("Ошибка загрузки похожих треков:", err);
+      console.error(err);
     } finally {
       setIsLoadingSimilar(false);
     }
   };
 
-  // ========== Управление плеером ==========
+  const buildTrackPayload = (item) => ({
+    track_id: item.track_id || item.id,
+    title: item.title,
+    track_url: item.track_url,
+    author_id: item.author?.id || item.author_id,
+    author_name: item.author?.nickname,
+    author_nickname: item.author?.nickname,
+    cover_url: item.cover_url,
+  });
 
-  const playTrack = () => {
-    if (!track) return;
+  const playTrack = (targetTrack = track, playlistItems = similarTracks) => {
+    if (!targetTrack?.track_url) {
+      alert("У трека нет аудиофайла");
+      return;
+    }
 
-    const trackData = {
-      track_id: track.track_id,
-      title: track.title,
-      track_url: track.track_url,
-      author_id: track.author?.id,
-      author_name: track.author?.nickname,
-      cover_url: track.cover_url || "https://picsum.photos/56",
-    };
-
-    // Формируем плейлист: текущий трек + похожие
+    const current = buildTrackPayload(targetTrack);
     const playlist = [
-      trackData,
-      ...similarTracks.map(item => ({
-        track_id: item.track_id,
-        title: item.title,
-        track_url: item.track_url,
-        author_id: item.author?.id,
-        author_name: item.author?.nickname,
-        cover_url: item.cover_url,
-      }))
+      current,
+      ...playlistItems.map(buildTrackPayload).filter((t) => t.track_url),
     ];
 
-    localStorage.setItem("currentTrack", JSON.stringify(trackData));
+    localStorage.setItem("currentTrack", JSON.stringify(current));
     localStorage.setItem("playlist", JSON.stringify(playlist));
     localStorage.setItem("currentIndex", "0");
-
     window.dispatchEvent(new Event("trackChanged"));
     window.dispatchEvent(new Event("playlistChanged"));
   };
 
-  // ========== Воспроизведение похожего трека ==========
+  const playSimilarTrack = (item, index) => {
+    const current = buildTrackPayload(track);
+    const playlist = [current, ...similarTracks.map(buildTrackPayload)];
+    const target = buildTrackPayload(item);
 
-  const playSimilarTrack = (similarTrack, index) => {
-    const trackData = {
-      track_id: similarTrack.track_id,
-      title: similarTrack.title,
-      track_url: similarTrack.track_url,
-      author_id: similarTrack.author?.id,
-      author_name: similarTrack.author?.nickname,
-      cover_url: similarTrack.cover_url,
-    };
-
-    // Плейлист: текущий трек + все похожие
-    const currentTrackData = {
-      track_id: track.track_id,
-      title: track.title,
-      track_url: track.track_url,
-      author_id: track.author?.id,
-      author_name: track.author?.nickname,
-      cover_url: track.cover_url || "https://picsum.photos/56",
-    };
-
-    const playlist = [
-      currentTrackData,
-      ...similarTracks.map(item => ({
-        track_id: item.track_id,
-        title: item.title,
-        track_url: item.track_url,
-        author_id: item.author?.id,
-        author_name: item.author?.nickname,
-        cover_url: item.cover_url,
-      }))
-    ];
-
-    localStorage.setItem("currentTrack", JSON.stringify(trackData));
+    localStorage.setItem("currentTrack", JSON.stringify(target));
     localStorage.setItem("playlist", JSON.stringify(playlist));
-    localStorage.setItem("currentIndex", String(index + 1)); // +1 потому что первый — текущий трек
-
+    localStorage.setItem("currentIndex", String(index + 1));
     window.dispatchEvent(new Event("trackChanged"));
     window.dispatchEvent(new Event("playlistChanged"));
   };
 
-  // ========== Лайк ==========
+  const handleSeek = (e) => {
+    const value = Number(e.target.value);
+    window.dispatchEvent(new CustomEvent("playerSeek", { detail: { percent: value / 100 } }));
+    setPlayback((prev) => ({
+      ...prev,
+      current: (value / 100) * (prev.duration || 0),
+    }));
+  };
 
   const handleLike = async () => {
     if (!token) {
-      alert("Войдите, чтобы оценить трек");
+      navigate("/login");
       return;
     }
 
@@ -186,209 +189,243 @@ function Track() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       if (response.ok) {
         setIsLiked(!isLiked);
-        setTrack(prev => ({
+        setTrack((prev) => ({
           ...prev,
-          liked_quantity: prev.liked_quantity + (isLiked ? -1 : 1),
+          liked_quantity: (prev.liked_quantity || 0) + (isLiked ? -1 : 1),
         }));
       }
     } catch (err) {
-      console.error("Ошибка лайка:", err);
+      console.error(err);
     }
   };
 
-  // ========== Обновление комментариев ==========
-
-  const handleCommentAdded = () => {
-    loadComments();
-    setTrack(prev => ({
-      ...prev,
-      comments_quantity: (prev.comments_quantity || 0) + 1,
-    }));
+  const handleFollow = async () => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      await fetch(`${API_URL}/api/v1/user/${track.author.id}/follow`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // ========== Состояние загрузки ==========
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: track.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert("Ссылка скопирована");
+      }
+    } catch {
+      /* cancelled */
+    }
+  };
+
+  const handleDownload = () => {
+    if (track?.track_url) {
+      window.open(track.track_url, "_blank");
+    }
+  };
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Загрузка трека...</p>
+      <div className="track-page">
+        <div className="track-page__loading">Загрузка трека...</div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !track) {
     return (
-      <div className="error-container">
-        <h2>Ошибка</h2>
-        <p>{error}</p>
-        <button onClick={loadTrackData}>Попробовать снова</button>
+      <div className="track-page">
+        <div className="track-page__error">
+          <p>{error || "Трек не найден"}</p>
+          <button type="button" onClick={loadTrackData}>Попробовать снова</button>
+        </div>
       </div>
     );
   }
 
-  if (!track) {
-    return (
-      <div className="not-found-container">
-        <h2>Трек не найден</h2>
-        <p>Возможно, он был удалён или ещё не опубликован</p>
-      </div>
-    );
-  }
+  const progressPercent = playback.duration
+    ? (playback.current / playback.duration) * 100
+    : 0;
 
-  // ========== Рендер ==========
+  const genres = track.genres?.length ? track.genres : ["Electronic"];
 
   return (
     <div className="track-page">
-      <div className="track-content">
-
-        {/* ===== ЛЕВАЯ КОЛОНКА ===== */}
-        <div className="left-column">
-
-          {/* Карточка трека */}
-          <div className="track-main-card">
-            <div className="track-text">
+      <div className="track-page__inner">
+        <div className="track-main">
+          <section className="track-hero">
+            <div className="track-hero__info">
               <h1>{track.title}</h1>
               <p
-                className="artist-name"
+                className="track-hero__artist"
                 onClick={() => navigate(`/profile/${track.author?.id}`)}
-                style={{ cursor: 'pointer' }}
               >
                 {track.author?.nickname || "Неизвестный автор"}
               </p>
 
-              <div className="controls">
-                <button className="play-btn-large" onClick={playTrack}>
+              <div className="track-hero__controls">
+                <button type="button" className="track-hero__btn track-hero__btn--play" onClick={() => playTrack()}>
                   ▶
                 </button>
                 <button
-                  className={`like-btn ${isLiked ? "active" : ""}`}
+                  type="button"
+                  className={`track-hero__btn ${isLiked ? "active" : ""}`}
                   onClick={handleLike}
                 >
-                  {isLiked ? "❤️" : "♡"}
+                  ♥
                 </button>
-                <button>↗</button>
-                <button>⋯</button>
+                <button type="button" className="track-hero__btn" onClick={handleShare}>↗</button>
+                <button type="button" className="track-hero__btn">⋯</button>
+                <button type="button" className="track-hero__btn" onClick={handleDownload}>↓</button>
               </div>
 
-              <div className="track-stats">
-                <span>❤️ {track.liked_quantity || 0}</span>
-                <span>💬 {track.comments_quantity || 0}</span>
-                <span>🎧 {track.listening_quantity || 0}</span>
+              <div className="track-hero__progress">
+                <span>{formatTime(playback.isActive ? playback.current : 0)}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={playback.isActive ? progressPercent : 0}
+                  onChange={handleSeek}
+                />
+                <span>{formatTime(playback.duration || 0)}</span>
               </div>
-
-              <div className="track-genres">
-                {track.genres?.map((genre, idx) => (
-                  <span key={idx} className="genre-tag">#{genre}</span>
-                ))}
-              </div>
-
-              {track.track_text && (
-                <div className="track-lyrics">
-                  <h4>Текст</h4>
-                  <p>{track.track_text}</p>
-                </div>
-              )}
             </div>
 
             <img
               src={track.cover_url || "https://picsum.photos/500/500?music"}
               alt={track.title}
-              className="cover"
+              className="track-hero__cover"
             />
-          </div>
+          </section>
 
-          {/* ===== КОММЕНТАРИИ ===== */}
           <CommentForm
             entityId={id}
             entityType="track"
-            onCommentAdded={handleCommentAdded}
+            userAvatar={currentUser?.avatar_url}
+            onCommentAdded={() => {
+              loadComments();
+              setTrack((prev) => ({
+                ...prev,
+                comments_quantity: (prev.comments_quantity || 0) + 1,
+              }));
+            }}
           />
 
-          <div className="comments-list">
-            {comments.length > 0 ? (
-              comments.map((comment) => (
-                <Comment
-                  key={comment.id}
-                  comment={comment}
-                  onUpdate={loadComments}
-                />
-              ))
-            ) : (
-              <p className="no-comments">Пока нет комментариев. Будьте первым!</p>
-            )}
-          </div>
-
+          <h3 className="track-comments__title">Комментарии</h3>
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                entityType="track"
+                entityId={id}
+                userAvatar={currentUser?.avatar_url}
+                onUpdate={loadComments}
+              />
+            ))
+          ) : (
+            <p className="track-comments__empty">Пока нет комментариев. Будьте первым!</p>
+          )}
         </div>
 
-        {/* ===== ПРАВАЯ КОЛОНКА ===== */}
-        <div className="right-column">
-
-          {/* Артист */}
-          <div className="side-block">
+        <aside className="track-sidebar">
+          <div className="track-side-block">
             <h3>Артист</h3>
-            <div className="artist-card">
-              <img
-                src={track.author?.avatar_url || "https://picsum.photos/80"}
+            <div className="track-artist-card">
+              <Avatar
+                src={track.author?.avatar_url}
                 alt={track.author?.nickname}
+                className="track-artist-card__avatar"
                 onClick={() => navigate(`/profile/${track.author?.id}`)}
-                style={{ cursor: 'pointer' }}
               />
               <div>
                 <p
+                  className="track-artist-card__name"
                   onClick={() => navigate(`/profile/${track.author?.id}`)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  {track.author?.nickname || "Неизвестный автор"}
+                  {track.author?.nickname || "Автор"}
                 </p>
-                <button>Подписаться</button>
+                <button type="button" onClick={handleFollow}>Подписаться</button>
               </div>
             </div>
           </div>
 
-          {/* Теги */}
-          <div className="side-block">
+          <div className="track-side-block">
             <h3>Теги</h3>
-            <div className="tags">
-              {track.genres?.map((genre, idx) => (
-                <span key={idx}>#{genre}</span>
+            <div className="track-tags">
+              {genres.map((genre) => (
+                <span key={genre}>#{genre}</span>
               ))}
             </div>
           </div>
 
-          {/* ===== ПОХОЖИЕ ТРЕКИ ===== */}
-          <div className="side-block">
-            <h3>Похожие треки</h3>
+          <div className="track-side-block">
+            <div className="track-side-block__header">
+              <h3>Похожие треки</h3>
+              <a href="/search" className="track-side-block__link">View all &gt;</a>
+            </div>
             {isLoadingSimilar ? (
-              <div className="loading-mini">Загрузка...</div>
+              <p className="track-comments__empty">Загрузка...</p>
             ) : similarTracks.length > 0 ? (
-              similarTracks.map((item, index) => (
+              similarTracks.slice(0, 3).map((item, index) => (
                 <div
                   key={item.track_id || index}
-                  className="mini-track"
+                  className="track-mini-item"
                   onClick={() => playSimilarTrack(item, index)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <img
-                    src={item.cover_url || "https://picsum.photos/70"}
-                    alt={item.title}
-                  />
+                  <img src={item.cover_url || "https://picsum.photos/70"} alt={item.title} />
                   <div>
-                    <p>{item.title}</p>
-                    <span>{item.author?.nickname || "Автор"}</span>
+                    <p className="track-mini-item__title">{item.title}</p>
+                    <p className="track-mini-item__artist">{item.author?.nickname || "Автор"}</p>
+                    <p className="track-mini-item__stats">
+                      {formatCount(item.listening_quantity)} · {formatCount(item.liked_quantity)} лайков
+                    </p>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="no-similar">Нет похожих треков</p>
+              <p className="track-comments__empty">Нет похожих треков</p>
             )}
           </div>
 
-        </div>
+          <div className="track-side-block">
+            <div className="track-side-block__header">
+              <h3>В плейлистах</h3>
+              <span className="track-side-block__link">Посмотреть всё &gt;</span>
+            </div>
+            {MOCK_PLAYLISTS.map((playlist) => (
+              <div key={playlist.id} className="track-playlist-item">
+                <img src={playlist.cover} alt={playlist.title} />
+                <div>
+                  <p className="track-playlist-item__title">{playlist.title}</p>
+                  <p className="track-playlist-item__count">{playlist.tracks} треков</p>
+                </div>
+              </div>
+            ))}
+          </div>
 
+          <div className="track-side-block">
+            <h3>LIKED BY</h3>
+            <div className="track-liked-by">
+              <img src="https://i.pravatar.cc/80?img=12" alt="" />
+              <img src="https://i.pravatar.cc/80?img=32" alt="" />
+              <img src="https://i.pravatar.cc/80?img=45" alt="" />
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   );

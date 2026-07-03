@@ -83,7 +83,7 @@ async def get_current_user(
         return CurrentUser(
             id=user_uuid,
             nickname=user.get("user_nickname"),
-            avatar_url=user.get("user_avatar") or "/static/default-avatar.png",
+            avatar_url=user.get("user_avatar") or "",
             token=token
         )
 

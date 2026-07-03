@@ -1,3 +1,17 @@
-.home_page{
-    background: #000000FF;
+.home-page {
+  background: #000000;
+  min-height: calc(100vh - 72px);
+  padding-bottom: 100px;
+}
+
+.home-page__inner {
+  max-width: 1486px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+@media (max-width: 900px) {
+  .home-page__inner {
+    padding: 0 20px;
+  }
 }

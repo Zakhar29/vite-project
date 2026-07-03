@@ -103,6 +103,31 @@ async def list_post_comment_replies(
     return PostCommentListResponse(items=items, total=total, skip=skip, limit=limit)
 
 
+@router.post(
+    "/{post_id}/comments/{comment_id}/replies",
+    response_model=PostCommentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Ответ на комментарий к посту",
+)
+async def reply_to_post_comment(
+    post_id: str,
+    comment_id: str,
+    data: Annotated[
+        PostCommentCreate,
+        Body(openapi_examples={"default": {"value": {"comment": "Согласен!"}}}),
+    ],
+    user: CurrentUser = Depends(get_current_user),
+    service: CommentService = Depends(get_comment_service),
+):
+    return await service.create(
+        user.id,
+        entity_type="post",
+        entity_id=post_id,
+        comment=data.comment,
+        answer_id=comment_id,
+    )
+
+
 @router.put(
     "/{post_id}/comments/{comment_id}",
     response_model=PostCommentResponse,

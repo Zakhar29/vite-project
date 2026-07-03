@@ -32,6 +32,7 @@ time:"2 минуты назад"
 
 return (
 <div className="notifications-page">
+<div className="notifications-page__inner">
 
 <div className="notifications-header">
 
@@ -70,6 +71,8 @@ return (
 
 </div>
 ))}
+
+</div>
 
 </div>
 

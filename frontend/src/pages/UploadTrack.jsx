@@ -73,7 +73,8 @@ function UploadTrack() {
 
   return (
     <div className="upload-page">
-      <div className="upload-container neon-border">
+      <div className="upload-page__inner">
+      <div className="upload-container">
         <h2 className="neon-title">🎧 ЗАГРУЗИТЬ ТРЕК</h2>
         
         <form onSubmit={handleSubmit}>
@@ -183,6 +184,7 @@ function UploadTrack() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

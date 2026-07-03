@@ -265,7 +265,8 @@ function CreateRelease() {
 
   return (
     <div className="create-release-page">
-      <div className="create-release-container neon-border">
+      <div className="create-release-page__inner">
+      <div className="create-release-container">
         <h1 className="neon-title">Создать релиз</h1>
 
         {error && (
@@ -449,6 +450,7 @@ function CreateRelease() {
             </button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

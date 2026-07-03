@@ -1,20 +1,18 @@
-/* userCard.css */
-
 .user-card {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: #1a1a2e;
+  background: var(--color-surface);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
 }
 
 .user-card:hover {
-  background: #2a2a3e;
-  border-color: rgba(74, 158, 255, 0.2);
+  background: var(--color-surface-elevated);
+  border-color: rgba(82, 85, 244, 0.25);
   transform: translateX(4px);
 }
 
@@ -23,7 +21,7 @@
   height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #4a9eff;
+  border: 2px solid var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -33,18 +31,18 @@
 }
 
 .user-card-name {
-  color: #e2e8f0;
+  color: var(--color-text);
   font-weight: 600;
   font-size: 15px;
 }
 
 .user-card-username {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 
 .user-card-bio {
-  color: #94a3b8;
+  color: var(--color-text-secondary);
   font-size: 13px;
   margin-top: 2px;
   white-space: nowrap;
@@ -55,7 +53,7 @@
 .user-card-stats {
   display: flex;
   gap: 12px;
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -67,33 +65,32 @@
   padding: 4px 10px;
   border-radius: 6px;
   transition: all 0.2s;
-  color: #6b7280;
+  color: var(--color-text-muted);
 }
 
 .user-card-action-btn:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: #e2e8f0;
+  color: var(--color-text);
 }
 
 .user-card-action-btn.following {
-  color: #4a9eff;
+  color: var(--color-primary);
 }
 
 .user-card-action-btn.friend {
-  color: #6c5ce7;
+  color: var(--color-accent-light);
 }
 
 .user-card-self-label {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 500;
   padding: 4px 12px;
-  background: #0d0d1a;
+  background: var(--color-surface-input);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
 }
 
-/* ===== Адаптивность ===== */
 @media (max-width: 480px) {
   .user-card {
     padding: 8px 10px;
@@ -102,27 +99,5 @@
   .user-card-avatar {
     width: 36px;
     height: 36px;
-  }
-
-  .user-card-name {
-    font-size: 14px;
-  }
-
-  .user-card-username {
-    font-size: 12px;
-  }
-
-  .user-card-bio {
-    font-size: 12px;
-  }
-
-  .user-card-stats {
-    font-size: 11px;
-    gap: 8px;
-  }
-
-  .user-card-action-btn {
-    font-size: 16px;
-    padding: 2px 6px;
   }
 }

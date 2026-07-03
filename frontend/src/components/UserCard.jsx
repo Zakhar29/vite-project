@@ -1,5 +1,6 @@
 // components/UserCard.jsx
 import { useNavigate } from 'react-router-dom';
+import Avatar from "./Avatar";
 import "../styles/userCard.css";
 
 function UserCard({ 
@@ -14,7 +15,6 @@ function UserCard({
   // Определяем ID в зависимости от типа
   const userId = user.follower_id || user.following_id || user.friend_id || user.id;
   const nickname = user.nickname || user.username || 'Пользователь';
-  const avatarUrl = user.avatar_url || '/default-avatar.png';
   const bio = user.bio || '';
   const isFollowing = user.is_following || false;
   const isFriend = type === 'friends' || user.follow_status === 'friend';
@@ -79,11 +79,10 @@ function UserCard({
 
   return (
     <div className="user-card" onClick={handleClick}>
-      <img 
-        src={avatarUrl} 
-        alt={nickname} 
+      <Avatar
+        src={user.avatar_url}
+        alt={nickname}
         className="user-card-avatar"
-        onError={(e) => e.target.src = '/default-avatar.png'}
       />
       <div className="user-card-info">
         <div className="user-card-name">{nickname}</div>

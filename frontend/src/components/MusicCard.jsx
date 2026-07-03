@@ -19,16 +19,15 @@ function MusicCard({ item, onPlay, onAuthorClick }) {
 
   // Тип контента (Album, EP, Single, Track)
   const contentType = isAlbum
-    ? item?.subtype || 'Альбом'
-    : 'Трек';
+    ? (item?.subtype || item?.type_label || "Album")
+    : "Track";
 
-  // Дополнительная информация
-  const metaInfo = isTrack
-    ? item?.bpm ? `${item.bpm} BPM` : null
-    : item?.tracks_count ? `${item.tracks_count} треков` : null;
+  const typeLabel = typeof contentType === "string"
+    ? contentType.charAt(0).toUpperCase() + contentType.slice(1)
+    : "Track";
 
-  // Год (берем из форматированной даты)
-  const year = item?.published_at_formatted;
+  const year = item?.published_at_formatted
+    || (item?.published_at ? new Date(item.published_at).getFullYear() : "2024");
 
   // Треки для альбома
   const tracks = item?.tracks || [];
@@ -155,13 +154,8 @@ function MusicCard({ item, onPlay, onAuthorClick }) {
           </p>
 
           <div className="meta">
-            <div className="meta-left">
-              <span className="badge">{contentType}</span>
-              {metaInfo && (
-                <span className="badge badge-secondary">{metaInfo}</span>
-              )}
-            </div>
-            <span className="year">{year || '2024'}</span>
+            <span className="badge">{typeLabel}</span>
+            <span className="year">{year}</span>
           </div>
 
           {/* Дополнительная информация для рекомендаций */}

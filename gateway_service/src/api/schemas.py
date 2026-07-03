@@ -24,6 +24,10 @@ class PostCommentCreate(BaseModel):
 class PostCommentUpdate(BaseModel):
     comment: str
 
+class CommentReplyCreate(BaseModel):
+    comment: str
+    track_timecode: Optional[int] = None
+
 class TrackCommentCreate(BaseModel):
     comment: str
     track_timecode: Optional[int] = None
@@ -43,6 +47,18 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class ProfileNicknameUpdate(BaseModel):
+    nickname: str
+
+
+class ProfileUsernameUpdate(BaseModel):
+    username: str
+
+
+class ProfileBioUpdate(BaseModel):
+    bio: str = ""
 
 
 class RefreshResponse(BaseModel):

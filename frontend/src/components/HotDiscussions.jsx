@@ -66,7 +66,7 @@ function HotDiscussions() {
   if (loading) {
     return (
       <section className="hot-section">
-        <div className="title_hot">
+        <div className="hot-section__header">
           <SectionTitle title="Горячие обсуждения" />
         </div>
         <div className="hot-grid">
@@ -87,7 +87,7 @@ function HotDiscussions() {
   if (error) {
     return (
       <section className="hot-section">
-        <div className="title_hot">
+        <div className="hot-section__header">
           <SectionTitle title="Горячие обсуждения" />
         </div>
         <div className="hot-error">
@@ -103,7 +103,7 @@ function HotDiscussions() {
   if (posts.length === 0) {
     return (
       <section className="hot-section">
-        <div className="title_hot">
+        <div className="hot-section__header">
           <SectionTitle title="Горячие обсуждения" />
         </div>
         <div className="hot-empty">
@@ -118,15 +118,16 @@ function HotDiscussions() {
 
   return (
     <section className="hot-section">
-      <div className="title_hot">
+      <div className="hot-section__header">
         <SectionTitle title="Горячие обсуждения" />
       </div>
 
       <div className="hot-grid">
-        {posts.map((post) => (
+        {posts.slice(0, 3).map((post) => (
           <DiscussionCard
             key={post.id}
             post={post}
+            variant="hot"
             onClick={() => handleCardClick(post.id)}
           />
         ))}

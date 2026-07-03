@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ProfileHeader from "../components/ProfileHeader";
-import PlaylistCard from "../components/PlaylistCard";
-import AlbumCard from "../components/AlbumCard";
+import ProfilePlaylistCard from "../components/ProfilePlaylistCard";
+import ProfileAlbumCard from "../components/ProfileAlbumCard";
 import ProfileTrack from "../components/ProfileTrack";
 import DiscussionCard from "../components/DiscussionCard";
 import CreatePostModal from "../components/CreatePostModal";
 import "../styles/profile.css";
 
-// ========== Конфигурация API ==========
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 function Profile() {
@@ -16,13 +15,12 @@ function Profile() {
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
 
-  // ========== Состояния ==========
   const [tab, setTab] = useState("wall");
   const [posts, setPosts] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [tracks, setTracks] = useState([]);
   const [userData, setUserData] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null); // ← ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
+  const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,7 +36,40 @@ function Profile() {
   const TRACKS_LIMIT = 20;
   const ALBUMS_LIMIT = 20;
 
-  // ========== Загрузка текущего пользователя ==========
+  const isMyProfile = currentUser && (!id || id === "me" || id === currentUser.id);
+
+  const resolveProfileUserId = () => {
+    if (!id || id === "me") {
+      return currentUser?.id || userData?.id || null;
+    }
+    return id;
+  };
+
+  const playlists = useMemo(() => {
+    const nickname = userData?.nickname || "пользователя";
+    const fallbackCover = tracks[0]?.cover_url || albums[0]?.cover_url || "/default-cover.jpg";
+
+    return [
+      {
+        id: "user-tracks",
+        title: `Треки ${nickname}`,
+        trackCount: tracks.length,
+        coverUrl: tracks[0]?.cover_url || fallbackCover,
+      },
+      {
+        id: "liked",
+        title: "Понравившееся",
+        trackCount: tracks.filter((track) => track.is_liked).length,
+        coverUrl: tracks.find((track) => track.is_liked)?.cover_url || albums[1]?.cover_url || fallbackCover,
+      },
+      {
+        id: "recent",
+        title: "Недавние",
+        trackCount: Math.min(tracks.length, 10),
+        coverUrl: tracks[1]?.cover_url || albums[0]?.cover_url || fallbackCover,
+      },
+    ];
+  }, [userData, tracks, albums]);
 
   const fetchCurrentUser = async () => {
     if (!token) {
@@ -48,20 +79,18 @@ function Profile() {
 
     try {
       const response = await fetch(`${API_URL}/api/v1/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
         setCurrentUser(data);
         return data;
-      } else {
-        localStorage.removeItem("access_token");
-        setCurrentUser(null);
-        return null;
       }
+
+      localStorage.removeItem("access_token");
+      setCurrentUser(null);
+      return null;
     } catch (error) {
       console.error("Ошибка загрузки пользователя:", error);
       setCurrentUser(null);
@@ -71,24 +100,13 @@ function Profile() {
     }
   };
 
-  // ========== Определяем, свой это профиль ==========
-  // isMyProfile = true если:
-  // 1. Нет id в URL (страница /profile)
-  // 2. id === "me"
-  // 3. id совпадает с id текущего пользователя
-  const isMyProfile = (currentUser && id === currentUser.id);
-
-  // ========== Загрузка данных профиля ==========
-
   useEffect(() => {
     if (!token) {
       navigate("/login");
       return;
     }
-    
-    // Сначала загружаем текущего пользователя
+
     fetchCurrentUser().then(() => {
-      // После загрузки текущего пользователя загружаем профиль
       loadProfileData();
     });
   }, [id, token]);
@@ -96,29 +114,17 @@ function Profile() {
   const loadProfileData = async () => {
     setIsLoading(true);
     try {
-      // Определяем userId для запроса
-      let userId;
-      if (!id || id === "me") {
-        // Если страница /profile или /profile/me - используем текущего пользователя
-        if (currentUser) {
-          userId = currentUser.id;
-        } else {
-          // Если currentUser еще не загружен, ждем
-          return;
-        }
-      } else {
-        userId = id;
-      }
+      const profileUrl = (!id || id === "me")
+        ? `${API_URL}/api/v1/user/me`
+        : `${API_URL}/api/v1/user/${id}`;
 
-      const response = await fetch(`${API_URL}/api/v1/user/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(profileUrl, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) {
         if (response.status === 404) {
-          navigate("/not-found");
+          setUserData(null);
           return;
         }
         throw new Error("Ошибка загрузки профиля");
@@ -141,7 +147,6 @@ function Profile() {
       setHasMorePosts((data.recent_posts?.total || 0) > postsItems.length);
 
       setIsFollowing(data.user?.is_following || false);
-
     } catch (error) {
       console.error("Ошибка загрузки профиля:", error);
     } finally {
@@ -149,25 +154,21 @@ function Profile() {
     }
   };
 
-  // ========== Загрузка дополнительных постов ==========
-
   const loadMorePosts = async () => {
     if (!hasMorePosts || isLoading) return;
 
-    const userId = isMyProfile ? (currentUser?.id || "me") : id;
+    const userId = resolveProfileUserId();
+    if (!userId) return;
+
     try {
       const response = await fetch(
         `${API_URL}/api/v1/user/${userId}/posts?skip=${postsSkip}&limit=${POSTS_LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.ok) {
         const data = await response.json();
-        setPosts(prev => [...prev, ...data.items]);
+        setPosts((prev) => [...prev, ...data.items]);
         setPostsSkip(postsSkip + data.items.length);
         setHasMorePosts(data.has_more);
       }
@@ -176,25 +177,21 @@ function Profile() {
     }
   };
 
-  // ========== Загрузка дополнительных треков ==========
-
   const loadMoreTracks = async () => {
     if (!hasMoreTracks || isLoading) return;
 
-    const userId = isMyProfile ? (currentUser?.id || "me") : id;
+    const userId = resolveProfileUserId();
+    if (!userId) return;
+
     try {
       const response = await fetch(
         `${API_URL}/api/v1/user/${userId}/tracks?skip=${tracksSkip}&limit=${TRACKS_LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.ok) {
         const data = await response.json();
-        setTracks(prev => [...prev, ...data.items]);
+        setTracks((prev) => [...prev, ...data.items]);
         setTracksSkip(tracksSkip + data.items.length);
         setHasMoreTracks(data.has_more);
       }
@@ -203,25 +200,21 @@ function Profile() {
     }
   };
 
-  // ========== Загрузка дополнительных альбомов ==========
-
   const loadMoreAlbums = async () => {
     if (!hasMoreAlbums || isLoading) return;
 
-    const userId = isMyProfile ? (currentUser?.id || "me") : id;
+    const userId = resolveProfileUserId();
+    if (!userId) return;
+
     try {
       const response = await fetch(
         `${API_URL}/api/v1/user/${userId}/albums?skip=${albumsSkip}&limit=${ALBUMS_LIMIT}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.ok) {
         const data = await response.json();
-        setAlbums(prev => [...prev, ...data.items]);
+        setAlbums((prev) => [...prev, ...data.items]);
         setAlbumsSkip(albumsSkip + data.items.length);
         setHasMoreAlbums(data.has_more);
       }
@@ -230,8 +223,6 @@ function Profile() {
     }
   };
 
-  // ========== Обработчик подписки ==========
-
   const handleFollow = async () => {
     if (!token || isMyProfile) return;
 
@@ -239,14 +230,12 @@ function Profile() {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         setIsFollowing(!isFollowing);
-        setUserData(prev => ({
+        setUserData((prev) => ({
           ...prev,
           follower_quantity: prev.follower_quantity + (isFollowing ? -1 : 1),
         }));
@@ -256,13 +245,9 @@ function Profile() {
     }
   };
 
-  // ========== Обработчик создания поста ==========
-
   const handlePostCreated = (newPost) => {
-    setPosts(prev => [newPost, ...prev]);
+    setPosts((prev) => [newPost, ...prev]);
   };
-
-  // ========== Обработчик клика по посту ==========
 
   const handlePostClick = (postId) => {
     if (postId) {
@@ -270,14 +255,14 @@ function Profile() {
     }
   };
 
-  // ========== Состояние загрузки ==========
-
   if (isLoadingUser || isLoading) {
     return (
       <div className="profile-page">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Загрузка профиля...</p>
+        <div className="profile-page__inner">
+          <div className="loading-container">
+            <div className="loading-spinner" />
+            <p>Загрузка профиля...</p>
+          </div>
         </div>
       </div>
     );
@@ -286,159 +271,153 @@ function Profile() {
   if (!userData) {
     return (
       <div className="profile-page">
-        <div className="error-container">
-          <p>Пользователь не найден</p>
-          <button onClick={() => navigate("/")}>На главную</button>
+        <div className="profile-page__inner">
+          <div className="error-container">
+            <p>Пользователь не найден</p>
+            <button type="button" onClick={() => navigate("/")}>На главную</button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // ========== Рендер ==========
-
   return (
     <div className="profile-page">
+      <div className="profile-page__inner">
+        <ProfileHeader
+          user={userData}
+          isMyProfile={isMyProfile}
+          isFollowing={isFollowing}
+          onFollow={handleFollow}
+        />
 
-      {/* ===== ШАПКА ПРОФИЛЯ ===== */}
-      <ProfileHeader user={userData} isMyProfile={isMyProfile} />
-
-      {/* ===== КНОПКИ ДЕЙСТВИЙ ===== */}
-      {isMyProfile && (
-        <div className="profile-edit-link">
-          <Link to="/profile/edit" className="edit-profile-btn neon-btn-small">
-            ✎ Редактировать профиль
-          </Link>
-          <Link to="/create-release" className="create-release-btn neon-btn-small">
-            ➕ Создать релиз
-          </Link>
-        </div>
-      )}
-
-      {!isMyProfile && (
-        <div className="profile-follow-section">
+        <div className="profile-tabs">
           <button
-            className={`follow-btn ${isFollowing ? "following" : ""}`}
-            onClick={handleFollow}
+            type="button"
+            className={`profile-tabs__tab ${tab === "wall" ? "is-active" : ""}`}
+            onClick={() => setTab("wall")}
           >
-            {isFollowing ? "✅ Отписаться" : "➕ Подписаться"}
+            <span aria-hidden="true">☰</span>
+            Стена пользователя
+          </button>
+          <button
+            type="button"
+            className={`profile-tabs__tab ${tab === "posts" ? "is-active" : ""}`}
+            onClick={() => setTab("posts")}
+          >
+            <span aria-hidden="true">▦</span>
+            Посты
           </button>
         </div>
-      )}
 
-      {/* ===== ВКЛАДКИ ===== */}
-      <div className="profile-tabs">
-        <span
-          className={tab === "wall" ? "active" : ""}
-          onClick={() => setTab("wall")}
-        >
-          Музыка
-        </span>
-        <span
-          className={tab === "posts" ? "active" : ""}
-          onClick={() => setTab("posts")}
-        >
-          Посты
-        </span>
-      </div>
+        {tab === "wall" && (
+          <>
+            <section className="profile-section">
+              <h2 className="profile-section__title">Плейлисты</h2>
+              <div className="profile-section__row">
+                {playlists.map((playlist) => (
+                  <ProfilePlaylistCard
+                    key={playlist.id}
+                    title={playlist.title}
+                    trackCount={playlist.trackCount}
+                    coverUrl={playlist.coverUrl}
+                    onClick={() => navigate(`/playlist/${playlist.id}`)}
+                  />
+                ))}
+              </div>
+            </section>
 
-      {/* ===== ВКЛАДКА "СТЕНА" ===== */}
-      {tab === "wall" && (
-        <>
+            <section className="profile-section">
+              <h2 className="profile-section__title">Альбомы</h2>
+              {albums.length > 0 ? (
+                <div className="profile-section__grid">
+                  {albums.map((album) => (
+                    <ProfileAlbumCard
+                      key={album.id}
+                      album={album}
+                      onClick={() => navigate(`/album/${album.id}`)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-message">Нет альбомов</p>
+              )}
+              {hasMoreAlbums && (
+                <button type="button" className="load-more-btn" onClick={loadMoreAlbums}>
+                  Загрузить ещё альбомы
+                </button>
+              )}
+            </section>
 
-          {/* Альбомы */}
-          <h2>Альбомы</h2>
-          <div className="album-row">
-            {albums.length > 0 ? (
-              albums.map(album => (
-                <AlbumCard
-                  key={album.id}
-                  album={album}
-                  onClick={() => navigate(`/album/${album.id}`)}
-                />
-              ))
+            <section className="profile-section">
+              <h2 className="profile-section__title">Треки</h2>
+              {tracks.length > 0 ? (
+                <div className="profile-section__list">
+                  {tracks.map((track) => (
+                    <ProfileTrack
+                      key={track.track_id}
+                      track={track}
+                      onClick={() => navigate(`/track/${track.track_id}`)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-message">Нет треков</p>
+              )}
+              {hasMoreTracks && (
+                <button type="button" className="load-more-btn" onClick={loadMoreTracks}>
+                  Загрузить ещё треки
+                </button>
+              )}
+            </section>
+          </>
+        )}
+
+        {tab === "posts" && (
+          <section className="profile-section posts-section">
+            <div className="posts-section__header">
+              <h2 className="profile-section__title">Посты</h2>
+              {isMyProfile && (
+                <button
+                  type="button"
+                  className="posts-section__add"
+                  onClick={() => setIsModalOpen(true)}
+                  aria-label="Создать пост"
+                >
+                  +
+                </button>
+              )}
+            </div>
+
+            {posts.length > 0 ? (
+              posts.map((post) => {
+                if (!post?.id) return null;
+                return (
+                  <DiscussionCard
+                    key={post.id}
+                    post={post}
+                    onClick={() => handlePostClick(post.id)}
+                  />
+                );
+              })
             ) : (
-              <p className="empty-message">Нет альбомов</p>
+              <p className="empty-message">Нет постов</p>
             )}
-          </div>
-          {hasMoreAlbums && (
-            <button className="load-more-btn" onClick={loadMoreAlbums}>
-              Загрузить ещё альбомы
-            </button>
-          )}
 
-          {/* Треки */}
-          <h2>Треки</h2>
-          <div className="tracks-list">
-            {tracks.length > 0 ? (
-              tracks.map(track => (
-                <ProfileTrack
-                  key={track.track_id}
-                  track={track}
-                  onClick={() => navigate(`/track/${track.track_id}`)}
-                />
-              ))
-            ) : (
-              <p className="empty-message">Нет треков</p>
-            )}
-          </div>
-          {hasMoreTracks && (
-            <button className="load-more-btn" onClick={loadMoreTracks}>
-              Загрузить ещё треки
-            </button>
-          )}
-        </>
-      )}
-
-      {/* ===== ВКЛАДКА "ПОСТЫ" ===== */}
-      {tab === "posts" && (
-        <div className="posts-section">
-
-          <div className="posts-header">
-            <h2>Посты</h2>
-            {isMyProfile && (
-              <button
-                className="add-post"
-                onClick={() => setIsModalOpen(true)}
-              >
-                +
+            {hasMorePosts && (
+              <button type="button" className="load-more-btn" onClick={loadMorePosts}>
+                Загрузить ещё посты
               </button>
             )}
-          </div>
+          </section>
+        )}
 
-          {posts.length > 0 ? (
-            posts.map((post) => {
-              if (!post || !post.id) {
-                console.warn('⚠️ Невалидный пост:', post);
-                return null;
-              }
-              
-              return (
-                <DiscussionCard
-                  key={post.id}
-                  post={post}
-                  onClick={() => handlePostClick(post.id)}
-                />
-              );
-            })
-          ) : (
-            <p className="empty-message">Нет постов</p>
-          )}
-
-          {hasMorePosts && (
-            <button className="load-more-btn" onClick={loadMorePosts}>
-              Загрузить ещё посты
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* ===== МОДАЛКА СОЗДАНИЯ ПОСТА ===== */}
-      <CreatePostModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onPostCreated={handlePostCreated}
-      />
-
+        <CreatePostModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onPostCreated={handlePostCreated}
+        />
+      </div>
     </div>
   );
 }

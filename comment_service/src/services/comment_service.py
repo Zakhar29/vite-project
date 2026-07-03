@@ -98,11 +98,8 @@ class CommentService:
     ) -> dict[str, Any]:
         answer_oid: ObjectId | None = None
         if answer_id:
-            parent_oid = self._parse_comment_id(answer_id)
-            await self.collection.update_one(
-                {"_id": parent_oid},
-                {"$inc": {"answer_quantity": 1}}
-            )
+            await self._get_parent(answer_id, entity_type, entity_id)
+            answer_oid = self._parse_object_id(answer_id, "answer_id")
 
         now = datetime.now(timezone.utc)
         document: dict[str, Any] = {
